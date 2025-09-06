@@ -1,0 +1,7 @@
+/* src/styles/globals.css */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* O si prefieres usar Bootstrap, pega aquí el contenido del CDN */
+@import 'bootstrap/dist/css/bootstrap.css';
