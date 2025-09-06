@@ -11,7 +11,10 @@
     "@supabase/supabase-js": "^2.39.7",
     "next": "13.5.11",
     "react": "18.2.0",
-    "react-dom": "18.2.0"
+    "react-dom": "18.2.0",
+"react-draggable": "^4.4.6",
+  "uuid": "^9.0.1",
+  "bootstrap": "^5.3.3"
   },
   "devDependencies": {
     "autoprefixer": "^10.4.19",
