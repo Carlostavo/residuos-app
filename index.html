@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Gestión de Residuos Sólidos — Editor Pro</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.3/css/all.min.css">
+<link rel="stylesheet" href="styles/main.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand"><i class="fa-solid fa-recycle fa-xl"></i> Gestión RS</div>
+  <nav class="nav">
+    <a href="#" class="nav-link active" data-page="home">Inicio</a>
+    <a href="#" class="nav-link" data-page="indicadores">Indicadores</a>
+    <a href="#" class="nav-link disabled" data-page="metas">Metas</a>
+    <a href="#" class="nav-link disabled" data-page="avances">Avances</a>
+    <a href="#" class="nav-link disabled" data-page="reportes">Reportes</a>
+    <a href="#" class="nav-link" data-page="formularios">Formularios</a>
+    <button id="toggle-edit"><i class="fa-solid fa-pen-to-square"></i> Modo edición</button>
+    <button id="open-auth"><i class="fa-solid fa-right-to-bracket"></i> Iniciar sesión</button>
+    <button id="logout-btn"><i class="fa-solid fa-right-from-bracket"></i> Cerrar sesión</button>
+    <span id="whoami" style="font-weight:700;display:none"></span>
+  </nav>
+</header>
+
+<main class="wrap" id="main-wrap">
+  <aside class="sidebar" id="sidebar">
+    <div class="panel">
+      <h3>Insertar</h3>
+      <div class="grid-2">
+        <button class="action" data-insert="h2"><i class="fa-solid fa-heading"></i> Título</button>
+        <button class="action" data-insert="p"><i class="fa-solid fa-font"></i> Texto</button>
+        <button class="action" data-insert="img"><i class="fa-regular fa-image"></i> Imagen</button>
+        <button class="action" data-insert="button"><i class="fa-solid fa-square"></i> Botón</button>
+        <button class="action" data-insert="iframe"><i class="fa-solid fa-video"></i> Video</button>
+        <button class="action" data-insert="table"><i class="fa-solid fa-table"></i> Tabla</button>
+      </div>
+
+      <h3>Historial</h3>
+      <div class="row">
+        <button class="action" id="undo"><i class="fa-solid fa-rotate-left"></i> Deshacer</button>
+        <button class="action" id="redo"><i class="fa-solid fa-rotate-right"></i> Rehacer</button>
+      </div>
+
+      <h3>Propiedades</h3>
+      <div class="tabs" id="prop-tabs">
+        <button class="tab active" data-tab="general">General</button>
+        <button class="tab" data-tab="texto">Texto</button>
+        <button class="tab" data-tab="imagen">Imagen</button>
+        <button class="tab" data-tab="video">Video</button>
+        <button class="tab" data-tab="boton">Botón</button>
+        <button class="tab" data-tab="tabla">Tabla</button>
+        <button class="tab" data-tab="lienzo">Lienzo</button>
+      </div>
+
+      <section class="section active" id="sec-general">
+        <div class="grid-2">
+          <div class="field"><label>X</label><input type="number" id="gen-x"></div>
+          <div class="field"><label>Y</label><input type="number" id="gen-y"></div>
+          <div class="field"><label>Ancho</label><input type="number" id="gen-w"></div>
+          <div class="field"><label>Alto</label><input type="number" id="gen-h"></div>
+          <div class="field"><label>Rotación (°)</label><input type="number" id="gen-rot" value="0"></div>
+          <div class="field"><label>Índice Z</label><input type="number" id="gen-z" value="1"></div>
+        </div>
+        <div class="grid-2">
+          <div class="field"><label>Fondo</label><input type="color" id="gen-bg" value="#ffffff"></div>
+          <div class="field"><label>Color Borde</label><input type="color" id="gen-bc" value="#e2e8f0"></div>
+          <div class="field"><label>Grosor Borde (px)</label><input type="number" id="gen-bw" value="0"></div>
+          <div class="field"><label>Radio (px)</label><input type="number" id="gen-br" value="8"></div>
+          <div class="field"><label>Sombra</label>
+            <select id="gen-shadow">
+              <option value="none">Sin sombra</option>
+              <option value="sm">Suave</option>
+              <option value="md">Media</option>
+              <option value="lg">Fuerte</option>
+            </select>
+          </div>
+          <div class="field"><label>Padding</label><input type="number" id="gen-pad" value="8"></div>
+        </div>
+      </section>
+
+      <section class="section" id="sec-texto">
+        <div class="field"><label>Contenido</label><textarea id="txt-content" rows="4"></textarea></div>
+        <div class="grid-2">
+          <div class="field"><label>Fuente</label>
+            <select id="txt-font">
+              <option>Inter</option><option>Arial</option><option>Georgia</option>
+              <option>Tahoma</option><option>Verdana</option><option>Times New Roman</option>
+            </select>
+          </div>
+          <div class="field"><label>Tamaño (px)</label><input type="number" id="txt-size" value="18"></div>
+          <div class="field"><label>Color</label><input type="color" id="txt-color" value="#243b53"></div>
+          <div class="field"><label>Alineación</label>
+            <select id="txt-align"><option>left</option><option>center</option><option>right</option><option>justify</option></select>
+          </div>
+        </div>
+        <div class="row">
+          <button class="action" id="txt-bold"><i class="fa-solid fa-bold"></i> Negrita</button>
+          <button class="action" id="txt-italic"><i class="fa-solid fa-italic"></i> Cursiva</button>
+          <button class="action" id="txt-underline"><i class="fa-solid fa-underline"></i> Subrayado</button>
+          <button class="action" id="txt-list"><i class="fa-solid fa-list-ul"></i> Lista</button>
+        </div>
+      </section>
+
+      <section class="section" id="sec-imagen">
+        <div class="field"><label>URL</label><input type="text" id="img-src" placeholder="https://..."></div>
+        <label for="image-upload" id="upload-image-label">Subir desde PC</label>
+        <input type="file" id="image-upload" accept="image/*">
+        <div class="grid-2">
+          <div class="field"><label>Fit</label>
+            <select id="img-fit"><option value="cover">cover</option><option value="contain">contain</option></select>
+          </div>
+          <div class="field"><label>Alt</label><input type="text" id="img-alt"></div>
+          <div class="field"><label>Ancho (px)</label><input type="number" id="img-w"></div>
+          <div class="field"><label>Alto (px)</label><input type="number" id="img-h"></div>
+        </div>
+      </section>
+
+      <section class="section" id="sec-video">
+        <div class="field"><label>URL (YouTube)</label><input type="text" id="vid-src" placeholder="Pega la URL del video"></div>
+        <input type="file" id="video-upload" style="display:none" accept="video/*">
+        <button class="action" id="upload-btn">Subir desde PC</button>
+        <div class="grid-2">
+          <div class="field"><label>Ancho (px)</label><input type="number" id="vid-w"></div>
+          <div class="field"><label>Alto (px)</label><input type="number" id="vid-h"></div>
+        </div>
+      </section>
+
+      <section class="section" id="sec-boton">
+        <div class="grid-2">
+          <div class="field"><label>Texto</label><input type="text" id="btn-text"></div>
+          <div class="field"><label>Enlace</label><input type="text" id="btn-href"></div>
+          <div class="field"><label>Fondo</label><input type="color" id="btn-bg" value="#0288d1"></div>
+          <div class="field"><label>Texto</label><input type="color" id="btn-fg" value="#ffffff"></div>
+          <div class="field"><label>Radio (px)</label><input type="number" id="btn-radius" value="12"></div>
+          <div class="field"><label>Padding (px)</label><input type="number" id="btn-pad" value="10"></div>
+        </div>
+      </section>
+
+      <section class="section" id="sec-tabla">
+        <div class="grid-2">
+          <button class="action" id="tbl-add-row">+ Fila</button>
+          <button class="action" id="tbl-del-row">- Fila</button>
+          <button class="action" id="tbl-add-col">+ Columna</button>
+          <button class="action" id="tbl-del-col">- Columna</button>
+        </div>
+        <div class="grid-2">
+          <div class="field"><label>Borde color</label><input type="color" id="tbl-bc" value="#94a3b8"></div>
+          <div class="field"><label>Borde (px)</label><input type="number" id="tbl-bw" value="1"></div>
+          <div class="field"><label>Color celdas</label><input type="color" id="tbl-cell" value="#ffffff"></div>
+          <div class="field"><label>Padding celda</label><input type="number" id="tbl-pad" value="8"></div>
+        </div>
+      </section>
+
+      <section class="section" id="sec-lienzo">
+        <div class="grid-2">
+          <div class="field"><label>Grid (px)</label><input type="number" id="canvas-grid" value="20"></div>
+          <div class="field"><label>Snap a grid</label>
+            <select id="canvas-snap"><option value="on">on</option><option value="off">off</select>
+          </div>
+        </div>
+      </section>
+    </div>
+  </aside>
+
+  <section class="canvas-wrap">
+    <div class="canvas-toolbar" id="canvas-toolbar">
+      <span style="font-weight:800;color:#334155" class="label">Lienzo</span>
+      <div style="margin-left:auto;display:flex;gap:8px" class="buttons">
+        <button class="tab" id="bring-front"><i class="fa-solid fa-arrow-up"></i> Frente</button>
+        <button class="tab" id="send-back"><i class="fa-solid fa-arrow-down"></i> Fondo</button>
+        <button class="tab" id="duplicate"><i class="fa-regular fa-copy"></i> Duplicar</button>
+        <button class="tab" id="remove"><i class="fa-regular fa-trash-can"></i> Eliminar</button>
+      </div>
+    </div>
+    <div class="canvas" id="canvas">
+      </div>
+    <div class="floatbar" id="floatbar">
+      <button id="fb-dup" title="Duplicar"><i class="fa-regular fa-copy"></i><span>Duplicar</span></button>
+      <button id="fb-front" title="Traer al frente"><i class="fa-solid fa-arrow-up"></i><span>Frente</span></button>
+      <button id="fb-back" title="Enviar al fondo"><i class="fa-solid fa-arrow-down"></i><span>Fondo</span></button>
+      <button id="fb-del" title="Eliminar"><i class="fa-regular fa-trash-can"></i><span>Eliminar</span></button>
+    </div>
+  </section>
+</main>
+
+<div class="modal" id="auth">
+  <div class="sheet">
+    <button class="close-x" id="auth-close"><i class="fa-solid fa-xmark"></i></button>
+    <h2>Iniciar sesión</h2>
+    <div class="sheet-body">
+      <div class="field">
+        <label for="login-user">Usuario</label>
+        <input id="login-user" placeholder="admin / tecnico / viewer">
+      </div>
+      <div class="field">
+        <label for="login-pass">Contraseña</label>
+        <input id="login-pass" type="password" placeholder="1234">
+      </div>
+      <button class="submit" id="btn-login">Entrar</button>
+      <button class="close-modal">Salir</button>
+    </div>
+  </div>
+</div>
+
+<!-- Cargar scripts en orden correcto -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="scripts/supabase-client.js"></script>
+<script src="scripts/utils.js"></script>
+<script src="scripts/auth.js"></script>
+<script src="scripts/editor.js"></script>
+<script src="scripts/app.js"></script>
+</body>
+</html>
