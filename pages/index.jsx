@@ -19,12 +19,23 @@ export default function Home() {
   }, []);
 
   async function fetchPage(){
-    const { data, error } = await supabase.from('pages').select('*, elements(*)').eq('slug','home').single();
-    if(error){
-      await supabase.from('pages').upsert({slug:'home', title:'Inicio'});
-      const r = await supabase.from('pages').select('*, elements(*)').eq('slug','home').single();
-      setPage(r.data);
-    } else setPage(data);
+    try {
+      const { data, error } = await supabase.from('pages').select('*, elements(*)').eq('slug','home').single();
+      
+      if(error || !data) {
+        // Create the home page if it doesn't exist
+        const { error: insertError } = await supabase.from('pages').insert({slug:'home', title:'Inicio'});
+        if(insertError) console.error("Error creating home page:", insertError);
+        
+        // Fetch again after creation
+        const { data: newData } = await supabase.from('pages').select('*, elements(*)').eq('slug','home').single();
+        setPage(newData);
+      } else {
+        setPage(data);
+      }
+    } catch (err) {
+      console.error("Error fetching page:", err);
+    }
   }
 
   return (
