@@ -2,10 +2,13 @@ import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabaseClient'
 import { useEdit } from './EditContext'
+import LoginModal from './LoginModal'
 export default function Nav(){
   const [user,setUser]=useState(null)
   const [role,setRole]=useState(null)
   const { editMode, setEditMode } = useEdit()
+  const [showLogin, setShowLogin] = useState(false)
+
   useEffect(()=>{
     let mounted=true
     supabase.auth.getSession().then(({data})=>{ const u = data.session?.user ?? null; if(mounted) setUser(u); if(u) fetchRole(u.id) })
@@ -13,7 +16,7 @@ export default function Nav(){
     return ()=> s.subscription.unsubscribe()
   },[])
   async function fetchRole(id){ const { data } = await supabase.from('profiles').select('role').eq('id', id).maybeSingle(); if(data?.role) setRole(data.role) }
-  const signOut = async ()=> await supabase.auth.signOut()
+  const signOut = async ()=> { await supabase.auth.signOut(); setShowLogin(false) }
   return (
     <header className="header-brand py-3 mb-6">
       <div className="app-shell flex items-center justify-between">
@@ -36,10 +39,11 @@ export default function Nav(){
               <button onClick={signOut} className="bg-white text-red-600 px-3 py-1 rounded">Salir</button>
             </>
           ) : (
-            <Link href='/login'><a className="bg-white text-green-700 px-3 py-1 rounded">Iniciar sesión</a></Link>
+            <button onClick={()=>setShowLogin(true)} className="bg-white text-green-700 px-3 py-1 rounded">Iniciar sesión</button>
           )}
         </div>
       </div>
+      {showLogin && <LoginModal onClose={()=>setShowLogin(false)} />}
     </header>
   )
 }

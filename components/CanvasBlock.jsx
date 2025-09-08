@@ -2,7 +2,7 @@ import { Rnd } from 'react-rnd'
 import React from 'react'
 
 export default function CanvasBlock({ block, editMode, onChange, onUpdatePos, onSelect, selected }){
-  const { id, type, value, x=0, y=0, width=300, height='auto', styles={} } = block
+  const { id, type, value, x=0, y=0, width=300, height='auto', styles={}, zIndex=0 } = block
   const styleObj = { fontSize: styles.fontSize || '16px', color: styles.color || '#111827', textAlign: styles.align || 'left' }
 
   function content(){
@@ -13,16 +13,20 @@ export default function CanvasBlock({ block, editMode, onChange, onUpdatePos, on
     return <div dangerouslySetInnerHTML={{ __html: value }} />
   }
 
+  // helper to snap positions
+  function snap(n){ return Math.round(n/10)*10 }
+
   return (
     <Rnd
+      style={{ zIndex }}
       size={{ width: width, height: typeof height==='number'? height: 'auto' }}
       position={{ x: x, y: y }}
       bounds="parent"
       enableResizing={editMode}
       disableDragging={!editMode}
-      onDragStop={(e, d)=> onUpdatePos(id, { x: d.x, y: d.y })}
+      onDragStop={(e, d)=> onUpdatePos(id, { x: snap(d.x), y: snap(d.y) })}
       onResizeStop={(e, dir, ref, delta, pos)=>{
-        onUpdatePos(id, { x: pos.x, y: pos.y, width: parseInt(ref.style.width||0), height: parseInt(ref.style.height||0) })
+        onUpdatePos(id, { x: snap(pos.x), y: snap(pos.y), width: parseInt(ref.style.width||0), height: parseInt(ref.style.height||0) })
       }}
       onClick={()=> onSelect(id)}
       className={`card p-2 ${selected? 'ring-2 ring-green-300':''}`}>
