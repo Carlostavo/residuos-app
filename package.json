@@ -13,7 +13,7 @@
     "react-dom": "18.2.0",
     "@supabase/supabase-js": "2.39.0",
     "clsx": "1.2.1",
-    "react-rnd": "^10.4.0"
+    "react-rnd": "10.4.0"
   },
   "devDependencies": {
     "tailwindcss": "^3.3.3",
