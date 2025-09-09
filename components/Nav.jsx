@@ -1,0 +1,30 @@
+import Link from 'next/link'
+import { useEffect, useState } from 'react'
+import { supabase } from '../lib/supabaseClient'
+import { useEdit } from './EditContext'
+import LoginModal from './LoginModal'
+export default function Nav(){
+  const { editMode, setEditMode, showSidebar, setShowSidebar } = useEdit()
+  const [showLogin, setShowLogin] = useState(false)
+  return (
+    <header className='header'>
+      <div className='container'>
+        <div style={{ display:'flex', alignItems:'center', gap:18 }}>
+          <div style={{ fontWeight:700, fontSize:18 }}>Plataforma Residuos</div>
+          <nav>
+            <Link href='/'><a style={{ marginRight:12, color:'white' }}>Inicio</a></Link>
+            <Link href='/indicadores'><a style={{ marginRight:12, color:'white' }}>Indicadores</a></Link>
+            <Link href='/metas'><a style={{ marginRight:12, color:'white' }}>Metas</a></Link>
+            <Link href='/avances'><a style={{ marginRight:12, color:'white' }}>Avances</a></Link>
+            <Link href='/reportes'><a style={{ marginRight:12, color:'white' }}>Reportes</a></Link>
+            <Link href='/formulario'><a style={{ color:'white' }}>Formulario</a></Link>
+          </nav>
+        </div>
+        <div>
+          <button onClick={()=> setShowLogin(true)} className='button-primary'>Iniciar sesión</button>
+        </div>
+      </div>
+      {showLogin && <LoginModal onClose={()=> setShowLogin(false)} />}
+    </header>
+  )
+}
