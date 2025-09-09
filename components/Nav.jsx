@@ -1,3 +1,4 @@
+
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabaseClient'
@@ -6,7 +7,7 @@ import LoginModal from './LoginModal'
 export default function Nav(){
   const [user,setUser]=useState(null)
   const [role,setRole]=useState(null)
-  const { editMode, setEditMode } = useEdit()
+  const { editMode, setEditMode, showSidebar, setShowSidebar } = useEdit()
   const [showLogin, setShowLogin] = useState(false)
 
   useEffect(()=>{
@@ -16,7 +17,14 @@ export default function Nav(){
     return ()=> s.subscription.unsubscribe()
   },[])
   async function fetchRole(id){ const { data } = await supabase.from('profiles').select('role').eq('id', id).maybeSingle(); if(data?.role) setRole(data.role) }
-  const signOut = async ()=> { await supabase.auth.signOut(); setShowLogin(false) }
+  const signOut = async ()=> { await supabase.auth.signOut(); setShowLogin(false); setShowSidebar(false); setEditMode(false) }
+
+  function handleEdit(){
+    if(role!=='admin') return alert('Acceso de edición solo para administradores')
+    setEditMode(v=> !v)
+    setShowSidebar(s=> !s)
+  }
+
   return (
     <header className="header-brand py-3 mb-6">
       <div className="app-shell flex items-center justify-between">
@@ -34,7 +42,7 @@ export default function Nav(){
         <div className="flex items-center gap-3">
           {user ? (
             <>
-              {role==='admin' && <button onClick={()=>setEditMode(!editMode)} className="bg-white text-green-700 px-3 py-1 rounded">{editMode? 'Salir edición':'Editar'}</button>}
+              {role==='admin' && <button onClick={handleEdit} className="bg-white text-green-700 px-3 py-1 rounded">{editMode? 'Salir edición':'Editar'}</button>}
               <span className="text-white/90 text-sm">{user.email}</span>
               <button onClick={signOut} className="bg-white text-red-600 px-3 py-1 rounded">Salir</button>
             </>
