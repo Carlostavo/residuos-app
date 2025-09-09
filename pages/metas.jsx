@@ -1,16 +1,3 @@
 import PageEditor from './_pageEditor'
-import { useEdit } from '../components/EditContext'
-
-export default function Page(){
-  const { editMode } = useEdit()
-  if (editMode) return <PageEditor slug='metas' title='Metas' />
-
-  return (
-    <div className="app-shell" style={ paddingTop:24 }>
-      <h1 className="text-3xl font-bold mb-4">Metas</h1>
-      <div className="card p-6">
-        <p>Contenido público de la página metas.</p>
-      </div>
-    </div>
-  )
-}
+import { useState } from 'react'
+export default function Page(){ const [edit,setEdit] = useState(false); return (<div style={ padding:24 }><h1 className='text-3xl font-bold mb-4'>Metas</h1><div className='card p-6'>Contenido público metas</div></div>) }
