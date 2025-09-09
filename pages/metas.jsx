@@ -1,2 +1,7 @@
 import PageEditor from './_pageEditor'
-export default function Metas(){ return <PageEditor slug='metas' title='Metas' defaultContent={[{ id:'m1', type:'text', value:'<h2>Metas</h2><p>Contenido editable</p>', x:20, y:20, width:320 }]} /> }
+import { useEdit } from '../components/EditContext'
+export default function Page(){ 
+  const { editMode } = useEdit(); 
+  if(editMode) return <PageEditor slug='metas' title='Metas' /> 
+  return (<div className='app-shell' style={paddingTop:24}><h1 className='text-3xl font-bold mb-4'>Metas</h1><div className='card p-6'><p>Contenido público de la página metas</p></div></div>)
+}
