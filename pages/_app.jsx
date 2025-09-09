@@ -5,7 +5,9 @@ export default function MyApp({ Component, pageProps }){
   return (
     <EditProvider>
       <Nav />
-      <Component {...pageProps} />
+      <main>
+        <Component {...pageProps} />
+      </main>
     </EditProvider>
   )
 }

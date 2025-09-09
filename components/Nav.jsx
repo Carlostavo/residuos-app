@@ -7,34 +7,50 @@ export default function Nav(){
   const [user,setUser]=useState(null)
   const [role,setRole]=useState(null)
   const { editMode, setEditMode, showSidebar, setShowSidebar } = useEdit()
-  useEffect(()=>{ supabase.auth.getSession().then(({data})=>{ setUser(data.session?.user ?? null); if(data.session?.user) fetchRole(data.session.user.id) }); const s = supabase.auth.onAuthStateChange((_e,session)=>{ setUser(session?.user ?? null); if(session?.user) fetchRole(session.user.id) }); return ()=> s.subscription.unsubscribe() },[])
+  const [showLogin, setShowLogin] = useState(false)
+
+  useEffect(()=>{
+    let mounted=true
+    supabase.auth.getSession().then(({data})=>{ const u = data.session?.user ?? null; if(mounted) setUser(u); if(u) fetchRole(u.id) })
+    const s = supabase.auth.onAuthStateChange((_e,session)=>{ const u = session?.user ?? null; setUser(u); if(u) fetchRole(u.id); else setRole(null) })
+    return ()=> s.subscription.unsubscribe()
+  },[])
   async function fetchRole(id){ const { data } = await supabase.from('profiles').select('role').eq('id', id).maybeSingle(); if(data?.role) setRole(data.role) }
-  const signOut = async ()=> { await supabase.auth.signOut(); setShowSidebar(false); setEditMode(false) }
-  function handleEdit(){ if(role!=='admin') return alert('Solo administradores'); setEditMode(v=>!v); setShowSidebar(s=>!s) }
+  const signOut = async ()=> { await supabase.auth.signOut(); setShowLogin(false); setShowSidebar(false); setEditMode(false) }
+
+  function handleEdit(){
+    if(role!=='admin') return alert('Acceso de edición solo para administradores')
+    setEditMode(v=> !v)
+    setShowSidebar(s=> !s)
+  }
+
   return (
-    <header className='header-brand'>
-      <div className='app-shell' style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
-        <div style={{display:'flex',gap:20,alignItems:'center'}}>
-          <Link href='/'><a style={{color:'white',fontWeight:700}}>Plataforma Residuos</a></Link>
-          <nav style={{display:'flex',gap:12}}>
-            <Link href='/'><a style={{color:'rgba(255,255,255,0.9)'}}>Inicio</a></Link>
-            <Link href='/indicadores'><a style={{color:'rgba(255,255,255,0.9)'}}>Indicadores</a></Link>
-            <Link href='/metas'><a style={{color:'rgba(255,255,255,0.9)'}}>Metas</a></Link>
-            <Link href='/formulario'><a style={{color:'rgba(255,255,255,0.9)'}}>Formulario</a></Link>
+    <header className="header-brand py-3">
+      <div className="app-shell flex items-center justify-between">
+        <div className="flex items-center gap-6">
+          <Link href='/'><a className="font-bold text-lg">Plataforma Residuos</a></Link>
+          <nav className="flex gap-4 items-center text-white/90">
+            <Link href='/'><a className="hover:underline">Inicio</a></Link>
+            <Link href='/indicadores'><a className="hover:underline">Indicadores</a></Link>
+            <Link href='/metas'><a className="hover:underline">Metas</a></Link>
+            <Link href='/avances'><a className="hover:underline">Avances</a></Link>
+            <Link href='/reportes'><a className="hover:underline">Reportes</a></Link>
+            <Link href='/formulario'><a className="hover:underline">Formulario</a></Link>
           </nav>
         </div>
-        <div>
+        <div className="flex items-center gap-3">
           {user ? (
             <>
-              {role==='admin' && <button onClick={handleEdit} style={{marginRight:8}}>{editMode? 'Salir edición':'Editar'}</button>}
-              <span style={{color:'white',marginRight:8}}>{user.email}</span>
-              <button onClick={signOut}>Salir</button>
+              {role==='admin' && <button onClick={handleEdit} className="bg-white text-green-700 px-3 py-1 rounded">{editMode? 'Salir edición':'Editar'}</button>}
+              <span className="text-white/90 text-sm">{user.email}</span>
+              <button onClick={signOut} className="bg-white text-red-600 px-3 py-1 rounded">Salir</button>
             </>
           ) : (
-            <button onClick={()=>alert('Abrir modal login')} style={{background:'white',color:'#10b981',padding:'6px 10px',borderRadius:6}}>Iniciar sesión</button>
+            <button onClick={()=>setShowLogin(true)} className="bg-white text-green-700 px-3 py-1 rounded">Iniciar sesión</button>
           )}
         </div>
       </div>
+      {showLogin && <LoginModal onClose={()=>setShowLogin(false)} />}
     </header>
   )
 }
