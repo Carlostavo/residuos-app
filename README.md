@@ -1,20 +1,15 @@
-# Plataforma Residuos - Final Editor
+Plataforma Residuos - Final Complete
 
-Incluye:
-- Editor WYSIWYG avanzado para admins con drag & resize libre (react-rnd).
-- Panel lateral de propiedades para editar cada elemento (texto, imagen, video, botón).
-- Toolbar superior con guardar, preview y acceso al historial.
-- Autosave, historial y restauración de versiones.
-- Login mejorado y UI refinada.
+Instrucciones:
+1. Ejecuta sql/all_tables_with_history_pages.sql en Supabase SQL Editor.
+2. Crea un bucket público llamado 'images' en Supabase Storage.
+3. Añade variables de entorno en .env.local o en Vercel:
+   NEXT_PUBLIC_SUPABASE_URL
+   NEXT_PUBLIC_SUPABASE_ANON_KEY
+4. Instala dependencias: npm install
+5. Ejecuta: npm run dev
 
-## Setup
-1. Ejecuta `sql/all_tables_with_history_pages.sql` en Supabase SQL Editor.
-2. Crea bucket `images` en Supabase Storage y configúralo público o con políticas adecuadas.
-3. Añade `.env.local` con:
-   NEXT_PUBLIC_SUPABASE_URL=...
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=...
-4. `npm install` y `npm run dev`.
-
-## Notas
-- Solo users con role='admin' pueden editar y restaurar versiones.
-- No compartas `SUPABASE_SERVICE_ROLE_KEY` en frontend.
+Características:
+- Canvas full-screen adaptado al viewport (modo visitante) y modo edición (admin) con panel izquierdo.
+- Subida de imágenes a Supabase Storage (bucket público 'images').
+- Fuentes adicionales disponibles en panel de propiedades.

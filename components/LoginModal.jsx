@@ -1,4 +1,3 @@
-
 import { createPortal } from 'react-dom'
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabaseClient'

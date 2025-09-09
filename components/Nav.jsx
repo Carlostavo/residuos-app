@@ -1,4 +1,3 @@
-
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabaseClient'
@@ -26,7 +25,7 @@ export default function Nav(){
   }
 
   return (
-    <header className="header-brand py-3 mb-6">
+    <header className="header-brand py-3">
       <div className="app-shell flex items-center justify-between">
         <div className="flex items-center gap-6">
           <Link href='/'><a className="font-bold text-lg">Plataforma Residuos</a></Link>

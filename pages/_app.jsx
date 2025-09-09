@@ -5,10 +5,8 @@ export default function MyApp({ Component, pageProps }){
   return (
     <EditProvider>
       <Nav />
-      <main className='p-6 bg-gray-50 min-h-screen'>
-        <div className='max-w-full mx-auto'>
-          <Component {...pageProps} />
-        </div>
+      <main>
+        <Component {...pageProps} />
       </main>
     </EditProvider>
   )
