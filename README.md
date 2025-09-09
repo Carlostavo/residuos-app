@@ -1,15 +1,12 @@
-Plataforma Residuos - Final Complete
+Plataforma Residuos — Proyecto completo (ZIP con todos los archivos)
 
-Instrucciones:
-1. Ejecuta sql/all_tables_with_history_pages.sql en Supabase SQL Editor.
-2. Crea un bucket público llamado 'images' en Supabase Storage.
-3. Añade variables de entorno en .env.local o en Vercel:
-   NEXT_PUBLIC_SUPABASE_URL
-   NEXT_PUBLIC_SUPABASE_ANON_KEY
-4. Instala dependencias: npm install
-5. Ejecuta: npm run dev
+Instrucciones rápidas:
+1. Copia `.env.local.example` a `.env.local` y pon tus valores de Supabase.
+2. Ejecuta en la raíz: `npm install`
+3. Inicia en modo desarrollo: `npm run dev`
+4. Crea el bucket público `images` en Supabase Storage.
+5. Ejecuta `sql/all_tables_with_history_pages.sql` en el SQL editor de Supabase.
 
-Características:
-- Canvas full-screen adaptado al viewport (modo visitante) y modo edición (admin) con panel izquierdo.
-- Subida de imágenes a Supabase Storage (bucket público 'images').
-- Fuentes adicionales disponibles en panel de propiedades.
+Notas:
+- El editor está disponible para usuarios con role `admin` en la tabla `profiles`.
+- Las imágenes subidas se guardan en `images/` dentro del bucket público y se muestran con la URL pública.
