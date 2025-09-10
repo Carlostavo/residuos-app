@@ -4,7 +4,7 @@ import CanvasBlock from './CanvasBlock'
 import ToolbarTop from './ToolbarTop'
 import { useEdit } from './EditContext'
 
-export default function EditorShell({ blocks, setBlocks, pageId, onSave, onPreview, onHistory }){
+export default function EditorShell({ blocks, setBlocks, pageId, onSave, onPreview, onHistory, onUndo, onRedo }){
   const { editMode, showSidebar } = useEdit()
 
   function updateBlock(id, html){ setBlocks(prev=> prev.map(b=> b.id===id? {...b, value: html} : b)) }
@@ -36,7 +36,7 @@ export default function EditorShell({ blocks, setBlocks, pageId, onSave, onPrevi
           </div>
         </div>
       </div>
-      <EditorSidebar blocks={blocks} setBlocks={setBlocks} />
+      <EditorSidebar blocks={blocks} setBlocks={setBlocks} onUndo={onUndo} onRedo={onRedo} />
     </div>
   )
 }
