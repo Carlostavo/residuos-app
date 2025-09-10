@@ -5,16 +5,14 @@ import { useEdit } from './EditContext'
 export default function Layout({ children }){
   const { showSidebar } = useEdit()
   return (
-    <div>
+    <div className={'app-wrapper' + (showSidebar? ' with-sidebar':'')}>
       <Nav />
-      <ToolbarTop />
-      <div className={showSidebar? 'canvas-offset':''}>
-        <main className='canvas-area'>
-          <div className={'canvas-inner'}>
-            {children}
-          </div>
-        </main>
-      </div>
+      <main className='canvas-area'>
+        <div className={'canvas-inner'}>
+          <div className='canvas-toolbar'><ToolbarTop /></div>
+          {children}
+        </div>
+      </main>
       <EditorSidebar />
     </div>
   )

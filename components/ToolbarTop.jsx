@@ -1,3 +1,16 @@
-import React from 'react'
 import { useEdit } from './EditContext'
-export default function ToolbarTop({ onSave }){ const { showSidebar, setShowSidebar, showGrid, setShowGrid } = useEdit(); return (<div className='toolbar card'><div style={{ display:'flex', gap:8 }}><button onClick={onSave} className='button-primary'>Guardar</button><button onClick={()=> window.dispatchEvent(new CustomEvent('editor:undo'))} className='px-3 py-1 rounded border'>Deshacer</button><button onClick={()=> window.dispatchEvent(new CustomEvent('editor:redo'))} className='px-3 py-1 rounded border'>Rehacer</button><button onClick={()=> setShowSidebar(s=>!s)} className='px-3 py-1 rounded border'>{showSidebar? 'Ocultar panel':'Abrir panel'}</button><button onClick={()=> setShowGrid(g=>!g)} className='px-3 py-1 rounded border'>{showGrid? 'Ocultar grid':'Mostrar grid'}</button></div><div className='small'>Editor — cambios guardados en tiempo real</div></div>) }
+export default function ToolbarTop({ onSave }){
+  const { showSidebar, setShowSidebar, showGrid, setShowGrid } = useEdit()
+  return (
+    <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', gap:12 }}>
+      <div style={{ display:'flex', gap:8 }}>
+        <button onClick={onSave} className='button-primary'>Guardar</button>
+        <button onClick={()=> window.dispatchEvent(new CustomEvent('editor:undo'))} className='px-3 py-1 rounded border'>Deshacer</button>
+        <button onClick={()=> window.dispatchEvent(new CustomEvent('editor:redo'))} className='px-3 py-1 rounded border'>Rehacer</button>
+        <button onClick={()=> setShowSidebar(s=>!s)} className='px-3 py-1 rounded border'>{showSidebar? 'Ocultar panel':'Abrir panel'}</button>
+        <button onClick={()=> setShowGrid(g=>!g)} className='px-3 py-1 rounded border'>{showGrid? 'Ocultar grid' : 'Mostrar grid'}</button>
+      </div>
+      <div className='small'>Editor — cambios guardados en tiempo real</div>
+    </div>
+  )
+}
