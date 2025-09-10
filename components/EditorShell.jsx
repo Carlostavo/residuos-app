@@ -1,0 +1,2 @@
+import CanvasBlock from './CanvasBlock'
+export default function EditorShell({ blocks, setBlocks, updateBlock }){ function onUpdatePos(id,pos){ updateBlock(id,pos) } function onChange(id,val){ updateBlock(id,{ value: val }) } return (<div style={{ height:'100%', position:'relative' }}>{blocks.map(b=> <CanvasBlock key={b.id} block={b} editMode={true} onChange={onChange} onUpdatePos={onUpdatePos} />)}</div>) }
