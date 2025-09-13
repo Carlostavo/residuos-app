@@ -1,43 +1,45 @@
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { supabase } from '../lib/supabaseClient'
 import EditorShell from '../components/EditorShell'
 import { useEdit } from '../components/EditContext'
 import ToolbarTop from '../components/ToolbarTop'
 
-export default function PageEditor({ slug='home', title='Página', defaultContent = [{ id:'b1', type:'text', value:'Bienvenido a la plataforma', x:40, y:40, width:360 }] }){
-  const { editMode } = useEdit()
+export default function PageEditor({ slug='home', defaultContent=[{ id:'b1', type:'text', value:'Bienvenido', x:40, y:40, width:360 }] }){
+  const { registerOnExit } = useEdit()
   const [blocks, setBlocks] = useState([])
-  const undoStack = useRef([]); const redoStack = useRef([])
+  const undo = useRef([])
+  const redo = useRef([])
 
-  useEffect(()=>{ load() }, [])
+  useEffect(()=>{ load(); }, [])
 
   async function load(){
-    const { data } = await supabase.from('pages').select('id, content').eq('slug', slug).maybeSingle()
-    if (data?.content) setBlocks(data.content)
+    const { data } = await supabase.from('pages').select('content').eq('slug', slug).maybeSingle()
+    if(data?.content) setBlocks(data.content)
     else setBlocks(defaultContent)
+    // register exit handler
+    registerOnExit(saveAndExit)
   }
 
-  function push(s){ undoStack.current.push(JSON.parse(JSON.stringify(s))); if(undoStack.current.length>50) undoStack.current.shift(); redoStack.current=[] }
-  function setBlocksWithHistory(next){ push(blocks); setBlocks(next) }
+  function pushHistory(snapshot){ undo.current.push(JSON.parse(JSON.stringify(snapshot))); if(undo.current.length>50) undo.current.shift(); redo.current = [] }
+  function setBlocksWithHistory(next){ pushHistory(blocks); setBlocks(next) }
 
-  async function save(){
+  async function saveAndExit(){
     const upsert = { slug, content: blocks, updated_at: new Date().toISOString() }
     const { data, error } = await supabase.from('pages').upsert(upsert).select('id').maybeSingle()
-    if (error) return console.error('save error', error)
-    alert('Guardado')
+    if(error) throw error
+    return data
   }
 
-  function preview(){ window.location.href = '/' }
-  function history(){ window.location.href = '/historial/'+slug }
-  function undo(){ if(undoStack.current.length===0) return; const prev = undoStack.current.pop(); redoStack.current.push(JSON.parse(JSON.stringify(blocks))); setBlocks(prev) }
-  function redo(){ if(redoStack.current.length===0) return; const next = redoStack.current.pop(); undoStack.current.push(JSON.parse(JSON.stringify(blocks))); setBlocks(next) }
+  function undoAction(){ if(undo.current.length===0) return; const prev = undo.current.pop(); redo.current.push(JSON.parse(JSON.stringify(blocks))); setBlocks(prev) }
+  function redoAction(){ if(redo.current.length===0) return; const next = redo.current.pop(); undo.current.push(JSON.parse(JSON.stringify(blocks))); setBlocks(next) }
+
+  function updateBlock(id, val){ setBlocks(prev=> prev.map(b=> b.id===id? {...b, ...val} : b)) }
+  function onUpdatePos(id, pos){ setBlocks(prev=> prev.map(b=> b.id===id? {...b, ...pos} : b)) }
 
   return (
     <div>
-      <ToolbarTop onSave={save} onPreview={preview} onHistory={history} onUndo={undo} onRedo={redo} editMode={editMode} />
-      <div style={{ paddingTop: '64px' }}>
-        <EditorShell blocks={blocks} setBlocks={setBlocksWithHistory} pageId={null} onSave={save} onPreview={preview} onHistory={history} />
-      </div>
+      <ToolbarTop onUndo={undoAction} onRedo={redoAction} onPreview={()=>{}} />
+      <EditorShell blocks={blocks} setBlocks={setBlocksWithHistory} onSave={()=>saveAndExit()} onPreview={()=>{}} onHistory={()=>{}} />
     </div>
   )
 }
