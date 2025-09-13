@@ -1,4 +1,4 @@
-import {{ useEffect, useState }} from 'react'
+import { useEffect, useState } from 'react'
 import {{ supabase }} from '../lib/supabaseClient'
 import PageEditor from './_pageEditor'
 import {{ useEdit }} from '../components/EditContext'
