@@ -354,7 +354,7 @@
     <a href="#" class="nav-link disabled" data-page="reportes">Reportes</a>
     <a href="#" class="nav-link" data-page="formularios">Formularios</a>
     <button id="toggle-edit"><i class="fa-solid fa-pen-to-square"></i> Modo edición</button>
-    <button id="open-auth"><i class="fa-solid fa-right-to-bracket"></i> Iniciar sesión</button>
+    
     <button id="logout-btn"><i class="fa-solid fa-right-from-bracket"></i> Cerrar sesión</button>
     <span id="whoami" style="font-weight:700;display:none"></span>
   </nav>
@@ -521,15 +521,7 @@
   </section>
 </main>
 
-<div class="modal" id="auth">
-  <div class="sheet">
-    <button class="close-x" id="auth-close"><i class="fa-solid fa-xmark"></i></button>
-    <h2>Iniciar sesión</h2>
-    <div class="sheet-body">
-      <div class="field">
-        <label for="login-user">Usuario</label>
-        <input id="login-user" placeholder="admin / tecnico / viewer">
-      </div>
+
       <div class="field">
         <label for="login-pass">Contraseña</label>
         <input id="login-pass" type="password" placeholder="1234">
@@ -1728,22 +1720,18 @@ toggleEditBtn.onclick = async ()=>{
 
 <script>
 (function(){
-  try { document.querySelector('#open-auth')?.remove(); } catch(e) {}
-  try { document.querySelector('#auth')?.remove(); } catch(e) {}
-
   window.saveToSupabase = async function(page, html) {
     parent.postMessage({ source: 'pae-editor', type: 'save-request', page, html }, '*');
   };
   window.loadFromSupabase = async function(page) {
     parent.postMessage({ source: 'pae-editor', type: 'load-request', page }, '*');
   };
-
   window.addEventListener('message', function(ev){
     var msg = ev.data || {};
     if(msg && msg.source === 'nextjs') {
       if(msg.type === 'set-content') {
         var canvas = document.querySelector('#canvas');
-        if(canvas) { canvas.innerHTML = msg.html || ''; if(typeof postLoad === 'function') try{ postLoad(); }catch(e){} }
+        if(canvas) { canvas.innerHTML = msg.html || ''; }
       } else if(msg.type === 'get-content') {
         var canvas = document.querySelector('#canvas');
         parent.postMessage({ source:'pae-editor', type:'content', page: msg.page || 'home', html: canvas ? canvas.innerHTML : '' }, '*');
@@ -1753,7 +1741,6 @@ toggleEditBtn.onclick = async ()=>{
       }
     }
   }, false);
-
   parent.postMessage({ source: 'pae-editor', type: 'ready' }, '*');
 })();
 </script>
