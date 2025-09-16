@@ -1,8 +1,5 @@
-# PAE Next.js Final
+# Plataforma Residuos - Actualizado
 
-Advanced conversion with Supabase Auth, roles and draggable floating toolbar.
+Este paquete contiene la versión unificada con login y editor avanzado.
 
-Setup:
-1. npm install
-2. Create .env.local with NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY
-3. npm run dev
+Configura `.env.local` con tus credenciales Supabase y crea un bucket llamado `public` en Storage.

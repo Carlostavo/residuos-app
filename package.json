@@ -1,5 +1,5 @@
 {
-  "name": "pae-nextjs-final",
+  "name": "plataforma-residuos-nextjs",
   "version": "1.0.0",
   "private": true,
   "scripts": {
@@ -8,9 +8,11 @@
     "start": "next start"
   },
   "dependencies": {
-    "next": "13.5.6",
+    "next": "13.4.10",
     "react": "18.2.0",
     "react-dom": "18.2.0",
-    "@supabase/supabase-js": "2.35.0"
+    "@supabase/supabase-js": "2.28.0",
+    "react-rnd": "10.4.6",
+    "uuid": "9.0.0"
   }
 }
