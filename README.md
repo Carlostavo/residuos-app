@@ -1,8 +1,8 @@
-# PAE Next.js Full Editor
+# PAE Next.js Final
 
-Converted from pae_supabase_mejorado.html into a componentized Next.js app.
+Advanced conversion with Supabase Auth, roles and draggable floating toolbar.
 
-Run:
+Setup:
 1. npm install
 2. Create .env.local with NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY
 3. npm run dev

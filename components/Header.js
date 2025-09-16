@@ -1,5 +1,7 @@
 import Link from 'next/link';
+import { useAuth } from '../context/AuthContext';
 export default function Header({ onToggleEdit, editable }) {
+  const { user, role, signOut } = useAuth();
   return (
     <header className="topbar">
       <div className="brand"><i className="fa-solid fa-recycle"></i>&nbsp;PAE</div>
@@ -12,8 +14,15 @@ export default function Header({ onToggleEdit, editable }) {
         <Link href="/formularios"><a>Formularios</a></Link>
       </nav>
       <div style={{display:'flex',gap:10,alignItems:'center'}}>
-        <button className="btn" onClick={onToggleEdit}><i className="fa-solid fa-pen-to-square"></i> {editable ? 'Salir edición' : 'Editar'}</button>
-        <button className="btn secondary"><i className="fa-solid fa-arrow-up-from-bracket"></i> Publicar</button>
+        {user ? (
+          <>
+            {(role==='admin' || role==='tecnico') && <button className="btn" onClick={onToggleEdit}>{editable ? 'Salir edición' : 'Editar'}</button>}
+            <span style={{fontWeight:700}}>{user.email}</span>
+            <button className="btn secondary" onClick={signOut}>Cerrar</button>
+          </>
+        ) : (
+          <Link href="/login"><a className="btn">Iniciar sesión</a></Link>
+        )}
       </div>
     </header>
   );
