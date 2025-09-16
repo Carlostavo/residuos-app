@@ -1,15 +1,26 @@
 import Header from '../components/Header';
+import Sidebar from '../components/Sidebar';
 import EditorCanvas from '../components/EditorCanvas';
 import { useState } from 'react';
-export default function Home() {
+
+export default function Home(){
   const [editable, setEditable] = useState(false);
-  const defaultHtml = `<div class="hero"><h1>Sistema de Gestión de Residuos Sólidos</h1><p>Plataforma para monitorear indicadores y generar reportes.</p></div>`;
   return (
-    <main>
-      <Header onToggleEdit={()=>setEditable(e=>!e)} />
+    <div>
+      <Header onToggleEdit={()=>setEditable(e=>!e)} editable={editable} />
       <div className="container">
-        <EditorCanvas initialHtml={defaultHtml} editable={editable} onSave={(html)=>{ alert('Aquí guardaría en Supabase (implementa lib/supabaseClient).\nContenido length: '+html.length); }} />
+        <div className="layout">
+          <Sidebar onAdd={(type)=>{ /* forwarded */ window.dispatchEvent(new CustomEvent('add-element',{detail:type})) }} />
+          <main className="canvasArea">
+            <div className="toolbar">
+              <div style={{fontWeight:800}}>Página Principal</div>
+            </div>
+            <div style={{flex:1}}>
+              <EditorCanvas editable={editable} initialElements={[]} pageId="index" />
+            </div>
+          </main>
+        </div>
       </div>
-    </main>
+    </div>
   );
 }

@@ -1,13 +1,8 @@
-# PAE Next.js Scaffold
+# PAE Next.js Full Editor
 
-Proyecto convertido desde `pae_supabase_mejorado.html` a Next.js (pages router).
+Converted from pae_supabase_mejorado.html into a componentized Next.js app.
 
-- Pages: /, /indicadores, /metas, /avances, /reportes, /formularios
-- Componentes: Header, EditorCanvas (lienzo editable simplificado)
-- Integración con Supabase: `lib/supabaseClient.js` (Rellena variables de entorno)
-
-Para ejecutar:
-
-1. `npm install`
-2. Crear archivo `.env.local` con `NEXT_PUBLIC_SUPABASE_URL` y `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-3. `npm run dev`
+Run:
+1. npm install
+2. Create .env.local with NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY
+3. npm run dev
