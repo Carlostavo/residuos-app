@@ -1,1 +1,0 @@
-export default function Avances(){ return <div><h2>Avances</h2></div>; }

@@ -1,1 +1,0 @@
-export default function Indicadores(){ return <div><h2>Indicadores</h2></div>; }

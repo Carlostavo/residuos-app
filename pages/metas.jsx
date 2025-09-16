@@ -1,1 +1,0 @@
-export default function Metas(){ return <div><h2>Metas</h2></div>; }
