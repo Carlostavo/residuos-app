@@ -1,14 +1,33 @@
 
-import { useEffect, useRef, useState } from 'react'; import { supabase } from '../lib/supabaseClient';
-export default function Home(){
-  const iframeRef = useRef(); const [role,setRole]=useState('viewer'); const [notice,setNotice]=useState('');
-  useEffect(()=>{ supabase.auth.getSession().then(r=>{ if(r.data.session?.user?.id) fetchRole(r.data.session.user.id); }); const sub=supabase.auth.onAuthStateChange((_,s)=>{ if(s?.session?.user?.id) fetchRole(s.session.user.id); else setRole('viewer'); });
-    function onMessage(e){ const msg = e.data || {}; if(msg?.source === 'pae-editor'){ if(msg.type === 'ready'){ loadFromSupabase('home'); } if(msg.type === 'content'){ saveToSupabase(msg.page||'home', msg.html||''); } if(msg.type === 'save-request'){ saveToSupabase(msg.page||'home', msg.html||''); } } }
-    window.addEventListener('message', onMessage); return ()=>{ window.removeEventListener('message', onMessage); sub.data?.subscription?.unsubscribe(); };
-  },[]);
-  async function fetchRole(userId){ if(!userId) { setRole('viewer'); return; } const { data } = await supabase.from('user_roles').select('role').eq('user_id', userId).single(); if(data?.role) setRole(data.role); else setRole('viewer'); }
-  async function loadFromSupabase(page='home'){ const { data } = await supabase.from('paginas').select('contenido_html').eq('nombre', page).single(); iframeRef.current?.contentWindow?.postMessage({ source:'nextjs', type:'set-content', page, html: data?.contenido_html || '' }, '*'); }
-  async function saveToSupabase(page='home', html=''){ try{ const up = await supabase.from('paginas').upsert({ nombre: page, contenido_html: html }, { returning: 'minimal' }); if(up.error) throw up.error; setNotice('Guardado en Supabase ✅'); setTimeout(()=>setNotice(''),3000); }catch(err){ setNotice('Error: '+err.message); } }
-  function requestContentFromIframe(){ iframeRef.current?.contentWindow?.postMessage({ source:'nextjs', type:'get-content', page:'home' }, '*'); }
-  function toggleEdit(val){ iframeRef.current?.contentWindow?.postMessage({ source:'nextjs', type:'toggle-edit', value: !!val }, '*'); }
-  return (<div><section style={{marginBottom:12}}><h1>Sistema de Gestión de Residuos Sólidos</h1><p>Editor visual integrado — cambios guardados en Supabase.</p></section>{notice && <div style={{background:'#d1fae5',padding:10,borderRadius:8,marginBottom:10}}>{notice}</div>}<div style={{display:'flex',gap:10,alignItems:'center',marginBottom:12}}>{(role==='admin'||role==='tecnico')?(<><button className='btn btn-primary' onClick={()=>toggleEdit(true)}>Activar edición</button><button className='btn' onClick={()=>toggleEdit(false)}>Desactivar edición</button><button className='btn' onClick={()=>requestContentFromIframe()}>Guardar cambios</button><button className='btn' onClick={()=>loadFromSupabase('home')}>Recargar desde Supabase</button></>):(<div style={{color:'#64748b'}}>Inicia sesión como admin/tecnico para editar</div>)}</div><div style={{border:'1px solid #e6eef0',borderRadius:12,overflow:'hidden'}}><iframe ref={iframeRef} src="/pae_editor.html" style={{width:'100%',height:'85vh',border:0}} /></div></div>); }
+export default function Home() {
+  return (
+    <div>
+      <section className="hero">
+        <h1>Sistema de Gestión de Residuos Sólidos</h1>
+        <p>La plataforma para monitorear indicadores, gestionar metas y generar reportes para una gestión ambiental eficiente.</p>
+      </section>
+      <section className="features">
+        <div className="card">
+          <div className="icon blue"></div>
+          <h3>Dashboard de Indicadores</h3>
+          <p>Visualiza en tiempo real el rendimiento del sistema de gestión.</p>
+        </div>
+        <div className="card">
+          <div className="icon yellow"></div>
+          <h3>Seguimiento de Avances</h3>
+          <p>Revisa el progreso de tus proyectos de reciclaje y reducción de residuos.</p>
+        </div>
+        <div className="card">
+          <div className="icon red"></div>
+          <h3>Generación de Reportes</h3>
+          <p>Crea y exporta informes detallados para auditorías o análisis.</p>
+        </div>
+        <div className="card">
+          <div className="icon purple"></div>
+          <h3>Formularios de Datos</h3>
+          <p>Ingresa y gestiona datos a través de formularios personalizados.</p>
+        </div>
+      </section>
+    </div>
+  );
+}
