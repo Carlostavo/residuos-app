@@ -2,7 +2,7 @@
 import Link from 'next/link';
 import { useAuth } from '../context/AuthContext';
 import { useState } from 'react';
-import LoginModal from './LoginModal';
+import LoginModal from '../pages/LoginModal';
 
 export default function Header({ onToggleEdit, editable }) {
   const { user, role, signOut } = useAuth();
