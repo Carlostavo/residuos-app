@@ -1,0 +1,2 @@
+import Header from '../components/Header';
+export default function Reportes(){ return (<main><Header /><div className="container"><h1>Reportes</h1><p>Generación y descarga de reportes.</p></div></main>); }

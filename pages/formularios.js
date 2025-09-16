@@ -1,0 +1,2 @@
+import Header from '../components/Header';
+export default function Formularios(){ return (<main><Header /><div className="container"><h1>Formularios</h1><p>Creación y administración de formularios.</p></div></main>); }
