@@ -1,0 +1,5 @@
+/* estilos por defecto */
+:root{--primary:#2e7d32;--secondary:#0288d1}
+.container{max-width:1100px;margin:18px auto;padding:0 16px}
+.btn{padding:10px 14px;border-radius:10px;border:none;cursor:pointer;font-weight:700}
+.btn-primary{background:linear-gradient(135deg,var(--secondary),#00a6c7);color:#fff}

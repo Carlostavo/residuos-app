@@ -1,0 +1,1 @@
+export default function Formularios(){ return <div><h2>Formularios</h2><p>Página placeholder</p></div>; }

@@ -1,0 +1,1 @@
+Sigue las instrucciones del README para configurar Supabase y ejecutar el proyecto.

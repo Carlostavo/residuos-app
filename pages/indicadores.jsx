@@ -1,0 +1,1 @@
+export default function Indicadores(){ return <div><h2>Indicadores</h2><p>Página placeholder</p></div>; }
