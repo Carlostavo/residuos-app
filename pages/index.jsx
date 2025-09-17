@@ -1,6 +1,5 @@
-import { useEffect, useState } from 'react'
-import { supabase } from '../lib/supabaseClient'
-import PageEditor from './_pageEditor'
+import Topbar from '../components/Topbar'
+import EditorShell from '../components/EditorShell'
 import { useEdit } from '../components/EditContext'
 
 export default function Home(){
