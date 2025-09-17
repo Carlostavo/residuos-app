@@ -1,98 +1,311 @@
-import { useEffect, useRef, useState } from 'react';
+// components/EditorCanvas.js
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { savePageContent, getPageContent } from '../lib/supabaseClient';
-const uid = ()=> Math.random().toString(36).slice(2,9);
-export default function EditorCanvas({ editable=false, pageId='index', initialContent=null }) {
+
+const uid = () => Math.random().toString(36).slice(2, 9);
+
+export default function EditorCanvas({ editable = false, pageId = 'index', initialContent = null }) {
   const [elements, setElements] = useState([]);
   const [selected, setSelected] = useState(null);
   const [history, setHistory] = useState([]);
   const [future, setFuture] = useState([]);
-  const pointer = useRef({mode:null,id:null,startX:0,startY:0,orig:{}});
+  const pointer = useRef({ mode: null, id: null, startX: 0, startY: 0, orig: {} });
 
-  useEffect(()=>{
-    async function load(){
-      if(initialContent){
-        try{ const parsed = JSON.parse(initialContent); setElements(parsed); setHistory([JSON.stringify(parsed)]); return; }catch(e){}
-      }
-      try{
-        const saved = await getPageContent(pageId);
-        if(saved){
-          const parsed = JSON.parse(saved);
-          setElements(parsed);
-          setHistory([JSON.stringify(parsed)]);
-        } else {
-          setElements([
-            {id: uid(), type:'text', x:20,y:20,w:420,h:120, html:'<h2>Bienvenido al PAE</h2><p>Contenido público editable.</p>'}
-          ]);
-          setHistory([JSON.stringify([{id: uid(), type:'text', x:20,y:20,w:420,h:120, html:'<h2>Bienvenido al PAE</h2><p>Contenido público editable.</p>'}])]);
+  // Cargar contenido inicial
+  useEffect(() => {
+    async function load() {
+      try {
+        let contentToLoad = initialContent;
+        
+        if (!contentToLoad) {
+          const saved = await getPageContent(pageId);
+          contentToLoad = saved;
         }
-      }catch(err){
-        console.error('load content error', err);
+        
+        if (contentToLoad) {
+          try {
+            const parsed = JSON.parse(contentToLoad);
+            setElements(parsed);
+            setHistory([JSON.stringify(parsed)]);
+            return;
+          } catch (e) {
+            console.error('Error parsing content:', e);
+          }
+        }
+        
+        // Contenido por defecto
+        const defaultContent = [
+          { id: uid(), type: 'text', x: 20, y: 20, w: 420, h: 120, html: '<h2>Bienvenido al PAE</h2><p>Contenido público editable.</p>' }
+        ];
+        setElements(defaultContent);
+        setHistory([JSON.stringify(defaultContent)]);
+      } catch (err) {
+        console.error('Error loading content:', err);
       }
     }
+    
     load();
-  },[pageId, initialContent]);
+  }, [pageId, initialContent]);
 
-  useEffect(()=>{ setHistory(h=>{ const cur = JSON.stringify(elements); if(h[h.length-1]===cur) return h; return [...h, cur].slice(-60); }); setFuture([]); },[elements]);
+  // Guardar historial cuando cambian los elementos
+  useEffect(() => {
+    const currentState = JSON.stringify(elements);
+    if (history.length === 0 || history[history.length - 1] !== currentState) {
+      setHistory(prev => [...prev, currentState].slice(-60));
+      setFuture([]);
+    }
+  }, [elements, history]);
 
-  function addElement(type){
+  // Funciones para manipular elementos
+  const addElement = useCallback((type) => {
     const id = uid();
-    const el = { id, type, x:40, y:40, w:240, h:80, html: type==='text' ? '<p>Nuevo texto</p>' : (type==='button' ? 'Click' : ''), src: type==='image' ? '/example.png' : (type==='video' ? 'https://www.youtube.com/embed/dQw4w9WgXcQ' : '') };
-    setElements(e=>[...e, el]);
+    const newElement = { 
+      id, 
+      type, 
+      x: 40, 
+      y: 40, 
+      w: type === 'text' ? 240 : 320, 
+      h: type === 'text' ? 80 : type === 'button' ? 40 : 180, 
+      html: type === 'text' ? '<p>Nuevo texto</p>' : (type === 'button' ? 'Click' : ''), 
+      src: type === 'image' ? '/example.png' : (type === 'video' ? 'https://www.youtube.com/embed/dQw4w9WgXcQ' : '') 
+    };
+    
+    setElements(prev => [...prev, newElement]);
     setSelected(id);
-  }
+  }, []);
 
-  function startDrag(e, id, mode){
+  const updateHtml = useCallback((id, html) => {
+    setElements(prev => prev.map(item => item.id === id ? { ...item, html } : item));
+  }, []);
+
+  const startDrag = useCallback((e, id, mode) => {
     e.stopPropagation();
     const p = pointer.current;
-    p.mode = mode; p.id = id; p.startX = e.clientX; p.startY = e.clientY;
-    const el = elements.find(x=>x.id===id); p.orig = {...el};
-    window.addEventListener('pointermove', onMove); window.addEventListener('pointerup', onUp);
-  }
-  function onMove(e){
-    const p = pointer.current;
-    if(!p.mode) return;
-    const dx = e.clientX - p.startX; const dy = e.clientY - p.startY;
-    setElements(prev=> prev.map(it=>{ if(it.id !== p.id) return it; if(p.mode==='move') return {...it, x: p.orig.x + dx, y: p.orig.y + dy}; if(p.mode==='resize') return {...it, w: Math.max(40, p.orig.w + dx), h: Math.max(24, p.orig.h + dy)}; return it; }));
-  }
-  function onUp(){ pointer.current.mode = null; pointer.current.id = null; window.removeEventListener('pointermove', onMove); window.removeEventListener('pointerup', onUp); }
+    p.mode = mode; 
+    p.id = id; 
+    p.startX = e.clientX; 
+    p.startY = e.clientY;
+    
+    const element = elements.find(x => x.id === id);
+    if (element) {
+      p.orig = { ...element };
+    }
+    
+    const onMove = (e) => {
+      if (!p.mode || !p.id) return;
+      const dx = e.clientX - p.startX;
+      const dy = e.clientY - p.startY;
+      
+      setElements(prev => prev.map(item => {
+        if (item.id !== p.id) return item;
+        
+        if (p.mode === 'move') {
+          return { ...item, x: p.orig.x + dx, y: p.orig.y + dy };
+        }
+        
+        if (p.mode === 'resize') {
+          return { 
+            ...item, 
+            w: Math.max(40, p.orig.w + dx), 
+            h: Math.max(24, p.orig.h + dy) 
+          };
+        }
+        
+        return item;
+      }));
+    };
+    
+    const onUp = () => {
+      pointer.current.mode = null;
+      pointer.current.id = null;
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onUp);
+    };
+    
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onUp);
+  }, [elements]);
 
-  function updateHtml(id, html){ setElements(prev=> prev.map(it=> it.id===id ? {...it, html} : it)); }
+  const undo = useCallback(() => {
+    if (history.length < 2) return;
+    
+    const lastState = history[history.length - 1];
+    const previousState = history[history.length - 2];
+    
+    setElements(JSON.parse(previousState));
+    setFuture(prev => [lastState, ...prev]);
+    setHistory(prev => prev.slice(0, -1));
+  }, [history]);
 
-  function undo(){ setHistory(h=>{ if(h.length<2) return h; const last = h[h.length-1]; const prev = h[h.length-2]; setElements(JSON.parse(prev)); setFuture(f=>[last,...f]); return h.slice(0,-1); }); }
-  function redo(){ setFuture(f=>{ if(f.length===0) return f; const next = f[0]; setElements(JSON.parse(next)); setHistory(h=>[...h, next]); return f.slice(1); }); }
-  function clearAll(){ setElements([]); setSelected(null); }
-  async function save(){ try{ await savePageContent(pageId, JSON.stringify(elements)); alert('Guardado correctamente.'); }catch(err){ alert('Error guardando: ' + err.message); } }
+  const redo = useCallback(() => {
+    if (future.length === 0) return;
+    
+    const nextState = future[0];
+    setElements(JSON.parse(nextState));
+    setHistory(prev => [...prev, nextState]);
+    setFuture(prev => prev.slice(1));
+  }, [future]);
 
-  useEffect(()=>{ function handler(e){ const { action } = e.detail || {}; if(action==='undo') undo(); if(action==='redo') redo(); if(action==='save') save(); if(action==='clear') clearAll(); if(action==='bold'){ if(selected){ updateHtml(selected, '<b>' + (elements.find(x=>x.id===selected)?.html || '') + '</b>'); } } } window.addEventListener('editor-action', handler); window.addEventListener('add-element', (ev)=> addElement(ev.detail)); return ()=> window.removeEventListener('editor-action', handler); },[selected, elements]);
+  const clearAll = useCallback(() => {
+    setElements([]);
+    setSelected(null);
+  }, []);
 
-  return (
-    <div style={{display:'flex',flexDirection:'column',height:'100%'}}>
-      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
-        <div style={{fontWeight:800}}>Editor</div>
-        <div style={{display:'flex',gap:8}}>
-          <button className="btn secondary" onClick={undo}>Deshacer</button>
-          <button className="btn secondary" onClick={redo}>Rehacer</button>
-          <button className="btn" onClick={save}>Guardar</button>
+  const save = useCallback(async () => {
+    try {
+      await savePageContent(pageId, JSON.stringify(elements));
+      alert('Guardado correctamente.');
+    } catch (err) {
+      console.error('Error saving:', err);
+      alert('Error guardando: ' + err.message);
+    }
+  }, [pageId, elements]);
+
+  // Event listeners para acciones globales
+  useEffect(() => {
+    const handleEditorAction = (e) => {
+      const { action } = e.detail || {};
+      
+      switch (action) {
+        case 'undo':
+          undo();
+          break;
+        case 'redo':
+          redo();
+          break;
+        case 'save':
+          save();
+          break;
+        case 'clear':
+          clearAll();
+          break;
+        case 'bold':
+          if (selected) {
+            const element = elements.find(x => x.id === selected);
+            if (element) {
+              updateHtml(selected, '<b>' + (element.html || '') + '</b>');
+            }
+          }
+          break;
+        default:
+          break;
+      }
+    };
+    
+    const handleAddElement = (ev) => {
+      addElement(ev.detail);
+    };
+
+    window.addEventListener('editor-action', handleEditorAction);
+    window.addEventListener('add-element', handleAddElement);
+    
+    return () => {
+      window.removeEventListener('editor-action', handleEditorAction);
+      window.removeEventListener('add-element', handleAddElement);
+    };
+  }, [selected, elements, undo, redo, save, clearAll, addElement, updateHtml]);
+
+  // Renderizar elementos
+  const renderElement = (el) => {
+    const isSelected = selected === el.id;
+    
+    return (
+      <div 
+        key={el.id} 
+        className={'editorElement' + (isSelected ? ' selected' : '')} 
+        style={{ left: el.x, top: el.y, width: el.w, height: el.h }}
+        onPointerDown={(e) => { 
+          e.stopPropagation(); 
+          setSelected(el.id); 
+          startDrag(e, el.id, 'move'); 
+        }}
+      >
+        <div className="content" style={{ width: '100%', height: '100%' }}>
+          {el.type === 'text' && (
+            <div 
+              contentEditable={editable && isSelected} 
+              suppressContentEditableWarning={true} 
+              onInput={(ev) => updateHtml(el.id, ev.currentTarget.innerHTML)} 
+              dangerouslySetInnerHTML={{ __html: el.html }} 
+            />
+          )}
+          
+          {el.type === 'button' && (
+            <button 
+              style={{ width: '100%', height: '100%' }} 
+              dangerouslySetInnerHTML={{ __html: el.html }} 
+            />
+          )}
+          
+          {el.type === 'image' && (
+            <img 
+              src={el.src} 
+              style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+              alt="Imagen" 
+            />
+          )}
+          
+          {el.type === 'video' && (
+            <iframe 
+              src={el.src} 
+              style={{ width: '100%', height: '100%' }} 
+              frameBorder="0" 
+              allowFullScreen 
+              title="Video"
+            />
+          )}
+          
+          {editable && (
+            <div 
+              className="handle" 
+              onPointerDown={(e) => { 
+                e.stopPropagation(); 
+                startDrag(e, el.id, 'resize'); 
+              }} 
+            />
+          )}
         </div>
       </div>
-      <div className="canvas" style={{marginTop:12, position:'relative', flex:1}} onPointerDown={()=>setSelected(null)}>
-        {elements.map(el=>{
-          const sel = selected===el.id;
-          return (
-            <div key={el.id} className={'editorElement' + (sel ? ' selected' : '')} style={{left:el.x, top:el.y, width:el.w, height:el.h}} onPointerDown={(e)=>{ e.stopPropagation(); setSelected(el.id); startDrag(e, el.id, 'move'); }}>
-              <div className="content" style={{width:'100%',height:'100%'}}>
-                {el.type==='text' && <div contentEditable={editable && sel} suppressContentEditableWarning={true} onInput={(ev)=> updateHtml(el.id, ev.currentTarget.innerHTML)} dangerouslySetInnerHTML={{__html: el.html}} />}
-                {el.type==='button' && <button style={{width:'100%',height:'100%'}} dangerouslySetInnerHTML={{__html: el.html}} />}
-                {el.type==='image' && <img src={el.src} style={{width:'100%',height:'100%',objectFit:'cover'}} />}
-                {el.type==='video' && <iframe src={el.src} style={{width:'100%',height:'100%'}} frameBorder="0" allowFullScreen />}
-                {editable && <div className="handle" onPointerDown={(e)=>{ e.stopPropagation(); startDrag(e, el.id, 'resize'); }} />}
-              </div>
-            </div>
-          );
-        })}
+    );
+  };
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ fontWeight: 800 }}>Editor</div>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button className="btn secondary" onClick={undo} disabled={history.length < 2}>
+            Deshacer
+          </button>
+          <button className="btn secondary" onClick={redo} disabled={future.length === 0}>
+            Rehacer
+          </button>
+          <button className="btn" onClick={save}>
+            Guardar
+          </button>
+        </div>
       </div>
-      <div style={{marginTop:10,display:'flex',gap:8}}>
-        <button className="btn secondary small" onClick={()=>{ navigator.clipboard && navigator.clipboard.writeText(JSON.stringify(elements)); alert('JSON copiado') }}>Copiar JSON</button>
+      
+      <div 
+        className="canvas" 
+        style={{ marginTop: 12, position: 'relative', flex: 1 }} 
+        onPointerDown={() => setSelected(null)}
+      >
+        {elements.map(renderElement)}
+      </div>
+      
+      <div style={{ marginTop: 10, display: 'flex', gap: 8 }}>
+        <button 
+          className="btn secondary small" 
+          onClick={() => { 
+            if (navigator.clipboard) {
+              navigator.clipboard.writeText(JSON.stringify(elements));
+              alert('JSON copiado al portapapeles');
+            }
+          }}
+        >
+          Copiar JSON
+        </button>
       </div>
     </div>
   );
