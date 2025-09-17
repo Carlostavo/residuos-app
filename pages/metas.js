@@ -1,8 +1,6 @@
-import Header from '../components/Header';
-import FloatingToolbar from '../components/FloatingToolbar';
-import EditorCanvas from '../components/EditorCanvas';
-import { useState } from 'react';
-import { useAuth } from '../context/AuthContext';
+import Topbar from '../components/Topbar'
+import EditorShell from '../components/EditorShell'
+import { useEdit } from '../components/EditContext'
 export default function Metas(){
   const [editable, setEditable] = useState(false);
   const { role } = useAuth();
