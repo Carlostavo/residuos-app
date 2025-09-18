@@ -1,1 +1,0 @@
-Proyecto generado: Editor avanzado con React-Quill. Configure Supabase para usarlo.
