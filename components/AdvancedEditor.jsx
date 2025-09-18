@@ -31,7 +31,7 @@ export default function AdvancedEditor({ isOpen, onClose, currentPage }) {
     } else if (editMode === 'delete') {
       document.addEventListener('click', handleDeleteClick)
     } else {
-      document.addEventListener('dblclick', handleEditClick)
+      document.addEventListener('click', handleEditClick)
     }
   }
 
@@ -42,7 +42,7 @@ export default function AdvancedEditor({ isOpen, onClose, currentPage }) {
     // Remover todos los event listeners
     document.removeEventListener('click', handleAddTextClick)
     document.removeEventListener('click', handleDeleteClick)
-    document.removeEventListener('dblclick', handleEditClick)
+    document.removeEventListener('click', handleEditClick)
   }
 
   const getCursorStyle = () => {
@@ -54,6 +54,9 @@ export default function AdvancedEditor({ isOpen, onClose, currentPage }) {
   }
 
   const handleEditClick = (e) => {
+    // Solo procesar si estamos en modo selección
+    if (editMode !== 'select') return;
+    
     const element = findTextElement(e.target)
     if (element && !e.target.closest('.editor-toolbar')) {
       e.preventDefault()
@@ -79,9 +82,7 @@ export default function AdvancedEditor({ isOpen, onClose, currentPage }) {
 
   const findTextElement = (target) => {
     // Buscar elementos de texto editables
-    return target.closest('h1, h2, h3, h4, h5, h6, p, span, div, li, td, th, figcaption, blockquote') ||
-           target.closest('[data-editable]') ||
-           target
+    return target.closest('[data-editable="true"]') || target
   }
 
   const openTextEditor = (element, x, y) => {
@@ -102,12 +103,11 @@ export default function AdvancedEditor({ isOpen, onClose, currentPage }) {
     const newElement = document.createElement('div')
     
     newElement.id = newElementId
-    newElement.className = 'editable-text-element absolute bg-white p-4 rounded-lg shadow-lg border-2 border-dashed border-blue-400 z-40'
+    newElement.className = 'editable-text-element'
+    newElement.setAttribute('data-editable', 'true')
     newElement.contentEditable = true
     newElement.style.left = `${x}px`
     newElement.style.top = `${y}px`
-    newElement.style.minWidth = '250px'
-    newElement.style.maxWidth = '400px'
     newElement.innerHTML = 'Haz clic para editar este texto...'
     
     // Hacer el elemento arrastrable
@@ -239,7 +239,7 @@ export default function AdvancedEditor({ isOpen, onClose, currentPage }) {
       <div className="fixed inset-0 bg-blue-100 bg-opacity-20 z-40" style={{ cursor: getCursorStyle() }}>
         <div className="absolute top-4 left-4 bg-blue-600 text-white px-4 py-2 rounded-lg shadow-lg">
           <i className="fa-solid fa-pen-to-square mr-2"></i>
-          Modo Edición - {editMode === 'select' ? 'Seleccionar (doble clic)' : editMode === 'text' ? 'Agregar Texto' : 'Eliminar'}
+          Modo Edición - {editMode === 'select' ? 'Seleccionar (clic)' : editMode === 'text' ? 'Agregar Texto' : 'Eliminar'}
         </div>
       </div>
 
@@ -251,7 +251,7 @@ export default function AdvancedEditor({ isOpen, onClose, currentPage }) {
           <button 
             onClick={() => setEditMode('select')}
             className={`p-3 rounded ${editMode === 'select' ? 'bg-blue-600' : 'bg-gray-600'} hover:bg-blue-700 transition-colors`}
-            title="Modo Selección (doble clic para editar)"
+            title="Modo Selección (clic para editar)"
           >
             <i className="fa-solid fa-mouse-pointer block text-center mb-1"></i>
             <span className="text-xs">Seleccionar</span>
@@ -297,7 +297,7 @@ export default function AdvancedEditor({ isOpen, onClose, currentPage }) {
         <div className="mt-4 p-3 bg-gray-700 rounded text-xs">
           <p className="font-bold mb-2">Instrucciones:</p>
           <ul className="space-y-1">
-            <li>• <span className="font-semibold">Seleccionar:</span> Doble clic en cualquier texto para editarlo</li>
+            <li>• <span className="font-semibold">Seleccionar:</span> Clic en cualquier texto para editarlo</li>
             <li>• <span className="font-semibold">Agregar:</span> Clic donde quieras agregar texto nuevo</li>
             <li>• <span className="font-semibold">Eliminar:</span> Clic en elementos agregados para borrarlos</li>
             <li>• <span className="font-semibold">Mover:</span> Arrastra los elementos nuevos para reposicionarlos</li>
