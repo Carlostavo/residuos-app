@@ -1,13 +1,12 @@
 'use client'
 import Link from 'next/link'
-import { useRouter, usePathname } from 'next/navigation'
+import { usePathname } from 'next/navigation'
 import { useAuth } from '../lib/useAuth'
 import { supabase } from '../lib/supabaseClient'
 import { useState } from 'react'
-import InlineEditor from './InlineEditor'
+import AdvancedEditor from './AdvancedEditor'
 
 export default function Header() {
-  const router = useRouter()
   const pathname = usePathname()
   const { session, role, loading } = useAuth()
   const [showLoginModal, setShowLoginModal] = useState(false)
@@ -31,16 +30,15 @@ export default function Header() {
       setShowLoginModal(false)
       setEmail('')
       setPassword('')
-      router.refresh()
+      window.location.reload()
     }
     setLoginLoading(false)
   }
 
   const handleLogout = async () => {
     await supabase.auth.signOut()
-    setShowEditor(false) // Cerrar editor al hacer logout
-    router.push('/')
-    router.refresh()
+    setShowEditor(false)
+    window.location.reload()
   }
 
   const handleEditClick = () => {
@@ -50,9 +48,9 @@ export default function Header() {
     }
     
     if (role === 'admin' || role === 'tecnico') {
-      setShowEditor(!showEditor) // Alternar editor
+      setShowEditor(!showEditor)
     } else {
-      alert('No tienes permisos para editar el contenido. Contacta al administrador.')
+      alert('No tienes permisos para editar. Contacta al administrador.')
     }
   }
 
@@ -84,7 +82,7 @@ export default function Header() {
                 } text-white hover:bg-opacity-90`}
               >
                 <i className="fa-solid fa-pen-to-square mr-2"></i>
-                {showEditor ? 'Saliendo edición...' : 'Editar'}
+                {showEditor ? 'Salir Edición' : 'Editar'}
               </button>
               
               <button
@@ -173,8 +171,8 @@ export default function Header() {
         </div>
       )}
 
-      {/* Editor Integrado */}
-      <InlineEditor 
+      {/* Editor Avanzado */}
+      <AdvancedEditor 
         isOpen={showEditor} 
         onClose={() => setShowEditor(false)} 
         currentPage={pathname} 
