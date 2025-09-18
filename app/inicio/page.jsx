@@ -1,7 +1,41 @@
 'use client'
 import Card from '../../components/Card'
+import { useEffect } from 'react'
 
 export default function InicioPage() {
+  useEffect(() => {
+    // Cargar contenido guardado al iniciar la página
+    loadSavedContent()
+  }, [])
+
+  const loadSavedContent = () => {
+    const page = '/inicio'
+    const savedContent = localStorage.getItem(`editor-content-${page}`)
+    const savedPositions = localStorage.getItem(`editor-positions-${page}`)
+    
+    if (savedContent) {
+      const contentData = JSON.parse(savedContent)
+      Object.keys(contentData).forEach(id => {
+        const element = document.getElementById(id)
+        if (element) {
+          element.innerHTML = contentData[id]
+        }
+      })
+    }
+    
+    if (savedPositions) {
+      const positionData = JSON.parse(savedPositions)
+      Object.keys(positionData).forEach(id => {
+        const element = document.getElementById(id)
+        if (element && positionData[id]) {
+          element.style.position = 'relative'
+          element.style.left = positionData[id].left
+          element.style.top = positionData[id].top
+        }
+      })
+    }
+  }
+
   const cards = [
     { title: "Gestión de Metas", desc: "Establece y sigue tus objetivos de sostenibilidad.", icon: "fa-bullseye", color: "bg-green-600", href: "/metas" },
     { title: "Dashboard de Indicadores", desc: "Visualiza en tiempo real el rendimiento.", icon: "fa-chart-line", color: "bg-blue-500", href: "/indicadores" },
@@ -14,18 +48,24 @@ export default function InicioPage() {
     <div className="canvas-container">
       <div className="content-canvas">
         <div className="hero-section text-center">
-          <h1 className="text-4xl md:text-5xl font-bold text-green-800 mb-4">
+          <h1 
+            id="inicio-title" 
+            className="text-4xl md:text-5xl font-bold text-green-800 mb-4 editable-content"
+          >
             Sistema de Gestión de Residuos Sólidos
           </h1>
-          <p className="text-lg text-gray-700 max-w-3xl mx-auto">
+          <p 
+            id="inicio-desc" 
+            className="text-lg text-gray-700 max-w-3xl mx-auto editable-content"
+          >
             La plataforma integral para monitorear indicadores, gestionar metas y generar reportes 
             para una gestión ambiental eficiente y sostenible.
           </p>
         </div>
 
         <div className="responsive-grid">
-          {cards.map((c) => (
-            <div key={c.title} className="h-full">
+          {cards.map((c, index) => (
+            <div key={c.title} className="h-full editable-content" id={`card-${index}`}>
               <Card 
                 title={c.title} 
                 desc={c.desc} 
@@ -40,7 +80,7 @@ export default function InicioPage() {
 
         {/* Sección adicional */}
         <div className="mt-12 grid md:grid-cols-2 gap-8">
-          <div className="bg-white rounded-2xl shadow-md p-6">
+          <div className="bg-white rounded-2xl shadow-md p-6 editable-content" id="benefits-section">
             <h2 className="text-2xl font-bold text-green-700 mb-4">¿Por qué elegirnos?</h2>
             <ul className="space-y-3">
               <li className="flex items-center">
@@ -58,7 +98,7 @@ export default function InicioPage() {
             </ul>
           </div>
           
-          <div className="bg-white rounded-2xl shadow-md p-6">
+          <div className="bg-white rounded-2xl shadow-md p-6 editable-content" id="updates-section">
             <h2 className="text-2xl font-bold text-green-700 mb-4">Últimas actualizaciones</h2>
             <div className="space-y-4">
               <div className="border-l-4 border-blue-500 pl-4">
