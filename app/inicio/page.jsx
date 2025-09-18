@@ -4,33 +4,27 @@ import { useEffect } from 'react'
 
 export default function InicioPage() {
   useEffect(() => {
-    // Cargar contenido guardado al iniciar la página
-    loadSavedContent()
+    // Cargar contenido del canvas si existe
+    loadCanvasContent()
   }, [])
 
-  const loadSavedContent = () => {
+  const loadCanvasContent = () => {
     const page = '/inicio'
-    const savedContent = localStorage.getItem(`editor-content-${page}`)
-    const savedPositions = localStorage.getItem(`editor-positions-${page}`)
+    const savedData = localStorage.getItem(`canvas-data-${page}`)
     
-    if (savedContent) {
-      const contentData = JSON.parse(savedContent)
-      Object.keys(contentData).forEach(id => {
+    if (savedData) {
+      const elementsData = JSON.parse(savedData)
+      Object.keys(elementsData).forEach(id => {
         const element = document.getElementById(id)
         if (element) {
-          element.innerHTML = contentData[id]
-        }
-      })
-    }
-    
-    if (savedPositions) {
-      const positionData = JSON.parse(savedPositions)
-      Object.keys(positionData).forEach(id => {
-        const element = document.getElementById(id)
-        if (element && positionData[id]) {
-          element.style.position = 'relative'
-          element.style.left = positionData[id].left
-          element.style.top = positionData[id].top
+          if (elementsData[id].content) {
+            element.innerHTML = elementsData[id].content
+          }
+          if (elementsData[id].position) {
+            element.style.position = 'absolute'
+            element.style.left = elementsData[id].position.left
+            element.style.top = elementsData[id].position.top
+          }
         }
       })
     }
@@ -47,67 +41,91 @@ export default function InicioPage() {
   return (
     <div className="canvas-container">
       <div className="content-canvas">
-        <div className="hero-section text-center">
-          <h1 
-            id="inicio-title" 
-            className="text-4xl md:text-5xl font-bold text-green-800 mb-4 editable-content"
-          >
+        {/* Elementos del canvas */}
+        <div 
+          id="hero-title" 
+          className="canvas-element text-element"
+          style={{ position: 'relative', left: '0', top: '0' }}
+        >
+          <h1 className="text-4xl md:text-5xl font-bold text-green-800 mb-4">
             Sistema de Gestión de Residuos Sólidos
           </h1>
-          <p 
-            id="inicio-desc" 
-            className="text-lg text-gray-700 max-w-3xl mx-auto editable-content"
-          >
+        </div>
+
+        <div 
+          id="hero-description" 
+          className="canvas-element text-element"
+          style={{ position: 'relative', left: '0', top: '0' }}
+        >
+          <p className="text-lg text-gray-700 max-w-3xl mx-auto">
             La plataforma integral para monitorear indicadores, gestionar metas y generar reportes 
             para una gestión ambiental eficiente y sostenible.
           </p>
         </div>
 
-        <div className="responsive-grid">
+        {/* Tarjetas como elementos del canvas */}
+        <div className="responsive-grid mt-8">
           {cards.map((c, index) => (
-            <div key={c.title} className="h-full editable-content" id={`card-${index}`}>
+            <div 
+              key={c.title} 
+              id={`card-${index}`}
+              className="canvas-element"
+              style={{ position: 'relative', left: '0', top: '0' }}
+            >
               <Card 
                 title={c.title} 
                 desc={c.desc} 
                 icon={c.icon} 
                 color={c.color} 
                 href={c.href} 
-                className="h-full card-hover"
+                className="h-full"
               />
             </div>
           ))}
         </div>
 
-        {/* Sección adicional */}
+        {/* Secciones adicionales como elementos del canvas */}
         <div className="mt-12 grid md:grid-cols-2 gap-8">
-          <div className="bg-white rounded-2xl shadow-md p-6 editable-content" id="benefits-section">
-            <h2 className="text-2xl font-bold text-green-700 mb-4">¿Por qué elegirnos?</h2>
-            <ul className="space-y-3">
-              <li className="flex items-center">
-                <i className="fa-solid fa-check-circle text-green-500 mr-3"></i>
-                <span>Monitoreo en tiempo real de indicadores</span>
-              </li>
-              <li className="flex items-center">
-                <i className="fa-solid fa-check-circle text-green-500 mr-3"></i>
-                <span>Reportes automatizados y personalizables</span>
-              </li>
-              <li className="flex items-center">
-                <i className="fa-solid fa-check-circle text-green-500 mr-3"></i>
-                <span>Seguimiento detallado de metas y avances</span>
-              </li>
-            </ul>
+          <div 
+            id="benefits-section"
+            className="canvas-element"
+            style={{ position: 'relative', left: '0', top: '0' }}
+          >
+            <div className="bg-white rounded-2xl shadow-md p-6">
+              <h2 className="text-2xl font-bold text-green-700 mb-4">¿Por qué elegirnos?</h2>
+              <ul className="space-y-3">
+                <li className="flex items-center">
+                  <i className="fa-solid fa-check-circle text-green-500 mr-3"></i>
+                  <span>Monitoreo en tiempo real de indicadores</span>
+                </li>
+                <li className="flex items-center">
+                  <i className="fa-solid fa-check-circle text-green-500 mr-3"></i>
+                  <span>Reportes automatizados y personalizables</span>
+                </li>
+                <li className="flex items-center">
+                  <i className="fa-solid fa-check-circle text-green-500 mr-3"></i>
+                  <span>Seguimiento detallado de metas y avances</span>
+                </li>
+              </ul>
+            </div>
           </div>
           
-          <div className="bg-white rounded-2xl shadow-md p-6 editable-content" id="updates-section">
-            <h2 className="text-2xl font-bold text-green-700 mb-4">Últimas actualizaciones</h2>
-            <div className="space-y-4">
-              <div className="border-l-4 border-blue-500 pl-4">
-                <h3 className="font-semibold">Nuevo dashboard de métricas</h3>
-                <p className="text-sm text-gray-600">Ahora con más gráficos interactivos</p>
-              </div>
-              <div className="border-l-4 border-green-500 pl-4">
-                <h3 className="font-semibold">Exportación de reportes mejorada</h3>
-                <p className="text-sm text-gray-600">Formatos PDF, Excel y CSV disponibles</p>
+          <div 
+            id="updates-section"
+            className="canvas-element"
+            style={{ position: 'relative', left: '0', top: '0' }}
+          >
+            <div className="bg-white rounded-2xl shadow-md p-6">
+              <h2 className="text-2xl font-bold text-green-700 mb-4">Últimas actualizaciones</h2>
+              <div className="space-y-4">
+                <div className="border-l-4 border-blue-500 pl-4">
+                  <h3 className="font-semibold">Nuevo dashboard de métricas</h3>
+                  <p className="text-sm text-gray-600">Ahora con más gráficos interactivos</p>
+                </div>
+                <div className="border-l-4 border-green-500 pl-4">
+                  <h3 className="font-semibold">Exportación de reportes mejorada</h3>
+                  <p className="text-sm text-gray-600">Formatos PDF, Excel y CSV disponibles</p>
+                </div>
               </div>
             </div>
           </div>
