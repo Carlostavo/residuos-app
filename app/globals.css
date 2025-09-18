@@ -2,6 +2,104 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Estilos para el modo edición */
+.edit-mode .editable-content {
+  transition: all 0.3s ease;
+  outline: 2px dashed rgba(59, 130, 246, 0.3);
+  border-radius: 6px;
+  padding: 8px;
+  margin: 4px;
+  min-height: 40px;
+  min-width: 100px;
+}
+
+.edit-mode .editable-content:hover {
+  outline: 2px solid rgba(59, 130, 246, 0.6);
+  background-color: rgba(59, 130, 246, 0.05);
+}
+
+.edit-mode .editable-content.editable-active {
+  outline: 2px solid rgba(59, 130, 246, 0.8);
+  background-color: rgba(59, 130, 246, 0.1);
+}
+
+.edit-mode .editable-content.dragging {
+  outline: 2px solid rgba(234, 88, 12, 0.8);
+  background-color: rgba(234, 88, 12, 0.1);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+  z-index: 1000;
+}
+
+/* Indicador visual para elementos editables */
+.edit-mode .editable-content::before {
+  content: '✎';
+  position: absolute;
+  top: -12px;
+  right: -12px;
+  background: #3b82f6;
+  color: white;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  z-index: 10;
+}
+
+/* Estilos para el contenido editable */
+[contenteditable="true"]:focus {
+  outline: 2px solid #3b82f6 !important;
+  background-color: rgba(59, 130, 246, 0.1) !important;
+}
+
+/* Toolbar de edición flotante */
+.editor-toolbar {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(31, 41, 55, 0.95);
+  color: white;
+  padding: 10px 16px;
+  border-radius: 12px;
+  display: flex;
+  gap: 8px;
+  z-index: 1000;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.editor-toolbar button {
+  padding: 8px 12px;
+  border-radius: 6px;
+  background: #4b5563;
+  color: white;
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.editor-toolbar button:hover {
+  background: #6b7280;
+}
+
+.editor-toolbar button.save-btn {
+  background: #10b981;
+}
+
+.editor-toolbar button.save-btn:hover {
+  background: #059669;
+}
+
+.editor-toolbar button.reset-btn {
+  background: #f59e0b;
+}
+
+.editor-toolbar button.reset-btn:hover {
+  background: #d97706;
+}
+
 /* Estilos para el lienzo adaptable */
 .canvas-container {
   @apply w-full min-h-screen bg-gradient-to-br from-gray-50 to-gray-100;
