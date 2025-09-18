@@ -7,53 +7,35 @@
   position: relative;
 }
 
-.editor-mode * {
+.editor-mode .editable-text-element {
   position: relative;
-}
-
-.editable-text-element {
   transition: all 0.3s ease;
   cursor: grab !important;
 }
 
-.editable-text-element:hover {
+.editor-mode .editable-text-element:hover {
   box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.4);
   transform: scale(1.02);
 }
 
-.editable-text-element:active {
+.editor-mode .editable-text-element:active {
   cursor: grabbing !important;
 }
 
 /* Mejoras para elementos editables */
-[contenteditable="true"]:focus {
+.editor-mode [contenteditable="true"]:focus {
   outline: 2px solid #3b82f6;
   background-color: rgba(59, 130, 246, 0.05);
 }
 
 /* Indicador visual de elementos editables en modo edición */
-.editor-mode h1,
-.editor-mode h2,
-.editor-mode h3,
-.editor-mode h4,
-.editor-mode h5,
-.editor-mode h6,
-.editor-mode p,
-.editor-mode span,
-.editor-mode div:not(.editor-toolbar) {
+.editor-mode [data-editable="true"] {
   border-radius: 4px;
   transition: all 0.2s ease;
+  min-height: 1rem;
 }
 
-.editor-mode h1:hover,
-.editor-mode h2:hover,
-.editor-mode h3:hover,
-.editor-mode h4:hover,
-.editor-mode h5:hover,
-.editor-mode h6:hover,
-.editor-mode p:hover,
-.editor-mode span:hover,
-.editor-mode div:not(.editor-toolbar):hover {
+.editor-mode [data-editable="true"]:hover {
   background-color: rgba(59, 130, 246, 0.1) !important;
   outline: 2px dashed rgba(59, 130, 246, 0.5) !important;
 }
@@ -69,4 +51,34 @@
 
 .editor-toolbar button:hover {
   transform: translateY(-1px);
+}
+
+/* Corrección para evitar que los estilos afecten elementos no deseados */
+.editor-mode .editor-toolbar,
+.editor-mode .editor-toolbar * {
+  border: none !important;
+  background: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Estilos específicos para elementos nuevos agregados */
+.editable-text-element {
+  position: absolute;
+  background-color: white;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  border: 2px dashed rgba(59, 130, 246, 0.5);
+  z-index: 40;
+  min-width: 250px;
+  max-width: 400px;
+  cursor: grab;
+}
+
+/* Asegurar que los elementos de la interfaz normal no se vean afectados */
+body:not(.editor-mode) [data-editable="true"] {
+  border: none !important;
+  background: none !important;
+  outline: none !important;
 }
