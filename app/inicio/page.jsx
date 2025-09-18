@@ -7,13 +7,19 @@ export default function InicioPage() {
     // Cargar contenido guardado
     const savedContent = localStorage.getItem('page-content-/inicio')
     if (savedContent) {
-      const elements = JSON.parse(savedContent)
-      elements.forEach(item => {
-        const el = document.querySelector(item.selector) || document.getElementById(item.id)
-        if (el) {
-          el.innerHTML = item.html
-        }
-      })
+      try {
+        const elements = JSON.parse(savedContent)
+        elements.forEach(item => {
+          if (item.id) {
+            const el = document.getElementById(item.id)
+            if (el) {
+              el.innerHTML = item.html
+            }
+          }
+        })
+      } catch (error) {
+        console.error('Error loading saved content:', error)
+      }
     }
   }, [])
 
@@ -27,8 +33,10 @@ export default function InicioPage() {
 
   return (
     <section className="space-y-6">
-      <div className="hero text-center p-12 bg-gradient-to-br from-green-50 to-white rounded-lg shadow editable" id="inicio-hero">
-        <h1 className="text-4xl font-bold text-green-700 editable" id="inicio-title">Sistema de Gestión de Residuos Sólidos</h1>
+      <div className="hero text-center p-12 bg-gradient-to-br from-green-50 to-white rounded-lg shadow">
+        <h1 className="text-4xl font-bold text-green-700 editable" id="inicio-title">
+          Sistema de Gestión de Residuos Sólidos
+        </h1>
         <p className="text-gray-600 mt-4 max-w-2xl mx-auto editable" id="inicio-desc">
           La plataforma para monitorear indicadores, gestionar metas y generar reportes para una gestión ambiental eficiente.
         </p>
@@ -36,8 +44,14 @@ export default function InicioPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 gap-6">
         {cards.map((c, index) => (
-          <div key={c.title} className="editable" id={`card-${index}`}>
-            <Card title={c.title} desc={c.desc} icon={c.icon} color={c.color} href={c.href} />
+          <div key={c.title} className="editable" id={`card-container-${index}`}>
+            <Card 
+              title={c.title} 
+              desc={c.desc} 
+              icon={c.icon} 
+              color={c.color} 
+              href={c.href} 
+            />
           </div>
         ))}
       </div>
