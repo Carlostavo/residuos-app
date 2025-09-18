@@ -6,7 +6,6 @@ export default function AdvancedEditor({ isOpen, onClose, currentPage }) {
   const [selectedElement, setSelectedElement] = useState(null)
   const [originalContent, setOriginalContent] = useState('')
   const [isEditing, setIsEditing] = useState(false)
-  const [editorPosition, setEditorPosition] = useState({ x: 0, y: 0 })
   const [editMode, setEditMode] = useState('select') // 'select', 'text', 'delete'
   const { role } = useAuth()
   const editorRef = useRef(null)
@@ -20,116 +19,142 @@ export default function AdvancedEditor({ isOpen, onClose, currentPage }) {
     }
 
     return () => disableEditMode()
-  }, [isOpen, role])
+  }, [isOpen, role, editMode])
 
   const enableEditMode = () => {
-    document.addEventListener('click', handleElementClick)
-    document.addEventListener('dblclick', handleDoubleClick)
-    document.body.style.cursor = editMode === 'select' ? 'crosshair' : 'text'
+    document.body.classList.add('editor-mode')
+    document.body.style.cursor = getCursorStyle()
+    
+    // Agregar event listeners específicos por modo
+    if (editMode === 'text') {
+      document.addEventListener('click', handleAddTextClick)
+    } else if (editMode === 'delete') {
+      document.addEventListener('click', handleDeleteClick)
+    } else {
+      document.addEventListener('dblclick', handleEditClick)
+    }
   }
 
   const disableEditMode = () => {
-    document.removeEventListener('click', handleElementClick)
-    document.removeEventListener('dblclick', handleDoubleClick)
+    document.body.classList.remove('editor-mode')
     document.body.style.cursor = 'default'
-    document.querySelectorAll('.editable-highlight').forEach(el => {
-      el.classList.remove('editable-highlight')
-    })
+    
+    // Remover todos los event listeners
+    document.removeEventListener('click', handleAddTextClick)
+    document.removeEventListener('click', handleDeleteClick)
+    document.removeEventListener('dblclick', handleEditClick)
   }
 
-  const handleElementClick = (e) => {
-    if (editMode === 'delete') {
-      handleDeleteElement(e)
-      return
+  const getCursorStyle = () => {
+    switch (editMode) {
+      case 'text': return 'text'
+      case 'delete': return 'not-allowed'
+      default: return 'crosshair'
     }
+  }
 
-    if (editMode === 'text') {
-      addNewTextElement(e)
-      return
-    }
-
-    // Modo selección normal
-    const element = findEditableElement(e.target)
-    if (element) {
+  const handleEditClick = (e) => {
+    const element = findTextElement(e.target)
+    if (element && !e.target.closest('.editor-toolbar')) {
       e.preventDefault()
       e.stopPropagation()
-      openEditor(element, e.clientX, e.clientY)
+      openTextEditor(element, e.clientX, e.clientY)
     }
   }
 
-  const handleDoubleClick = (e) => {
-    if (editMode === 'select') {
-      const element = findEditableElement(e.target)
-      if (element) {
-        e.preventDefault()
-        e.stopPropagation()
-        openEditor(element, e.clientX, e.clientY)
-      }
+  const handleAddTextClick = (e) => {
+    if (!e.target.closest('.editor-toolbar')) {
+      addNewTextElement(e.clientX, e.clientY)
     }
   }
 
-  const handleDeleteElement = (e) => {
-    const element = findEditableElement(e.target)
-    if (element && element.id) {
-      if (confirm('¿Estás seguro de que quieres eliminar este elemento?')) {
-        // Eliminar de localStorage
-        const saved = localStorage.getItem(`page-content-${currentPage}`)
-        if (saved) {
-          const elements = JSON.parse(saved)
-          const updatedElements = elements.filter(el => el.id !== element.id)
-          localStorage.setItem(`page-content-${currentPage}`, JSON.stringify(updatedElements))
-        }
-        
-        // Eliminar del DOM
-        element.remove()
-        alert('Elemento eliminado correctamente')
-      }
+  const handleDeleteClick = (e) => {
+    const element = findTextElement(e.target)
+    if (element && !e.target.closest('.editor-toolbar')) {
+      e.preventDefault()
+      e.stopPropagation()
+      deleteElement(element)
     }
   }
 
-  const findEditableElement = (target) => {
-    return target.closest('[data-editable]') || 
-           target.closest('.editable') || 
-           target.closest('h1, h2, h3, h4, h5, h6, p, span, div')
+  const findTextElement = (target) => {
+    // Buscar elementos de texto editables
+    return target.closest('h1, h2, h3, h4, h5, h6, p, span, div, li, td, th, figcaption, blockquote') ||
+           target.closest('[data-editable]') ||
+           target
   }
 
-  const openEditor = (element, x, y) => {
+  const openTextEditor = (element, x, y) => {
     setSelectedElement(element)
-    setOriginalContent(element.innerHTML)
+    setOriginalContent(element.textContent || element.innerHTML)
     setIsEditing(true)
-    setEditorPosition({ x, y })
+    
+    // Posicionar el editor cerca del elemento
+    const editor = editorRef.current
+    if (editor) {
+      editor.style.left = `${Math.min(x, window.innerWidth - 400)}px`
+      editor.style.top = `${Math.min(y - 200, window.innerHeight - 300)}px`
+    }
   }
 
-  const addNewTextElement = (e) => {
-    const x = e.clientX
-    const y = e.clientY
+  const addNewTextElement = (x, y) => {
     const newElementId = `new-text-${Date.now()}`
-    
     const newElement = document.createElement('div')
+    
     newElement.id = newElementId
-    newElement.className = 'editable new-text-element'
+    newElement.className = 'editable-text-element absolute bg-white p-4 rounded-lg shadow-lg border-2 border-dashed border-blue-400 z-40'
     newElement.contentEditable = true
-    newElement.style.position = 'absolute'
     newElement.style.left = `${x}px`
     newElement.style.top = `${y}px`
-    newElement.style.minWidth = '200px'
-    newElement.style.minHeight = '40px'
-    newElement.style.padding = '10px'
-    newElement.style.backgroundColor = 'white'
-    newElement.style.border = '2px dashed #3b82f6'
-    newElement.style.borderRadius = '8px'
-    newElement.style.zIndex = '1000'
-    newElement.innerHTML = 'Escribe tu texto aquí...'
+    newElement.style.minWidth = '250px'
+    newElement.style.maxWidth = '400px'
+    newElement.innerHTML = 'Haz clic para editar este texto...'
+    
+    // Hacer el elemento arrastrable
+    makeElementDraggable(newElement)
     
     document.body.appendChild(newElement)
-    
-    // Guardar automáticamente
-    saveElementToStorage(newElement)
-    
-    // Abrir editor para el nuevo elemento
-    openEditor(newElement, x, y)
-    
-    alert('Nuevo elemento de texto agregado. Arrástralo para moverlo.')
+    openTextEditor(newElement, x, y)
+  }
+
+  const makeElementDraggable = (element) => {
+    let isDragging = false
+    let offsetX, offsetY
+
+    element.addEventListener('mousedown', (e) => {
+      if (e.target === element || e.target.tagName !== 'TEXTAREA') {
+        isDragging = true
+        offsetX = e.clientX - element.getBoundingClientRect().left
+        offsetY = e.clientY - element.getBoundingClientRect().top
+        element.style.cursor = 'grabbing'
+      }
+    })
+
+    document.addEventListener('mousemove', (e) => {
+      if (isDragging) {
+        element.style.left = `${e.clientX - offsetX}px`
+        element.style.top = `${e.clientY - offsetY}px`
+      }
+    })
+
+    document.addEventListener('mouseup', () => {
+      isDragging = false
+      element.style.cursor = 'grab'
+      saveElementToStorage(element)
+    })
+
+    element.style.cursor = 'grab'
+  }
+
+  const deleteElement = (element) => {
+    if (element.id && element.id.startsWith('new-text-')) {
+      if (confirm('¿Eliminar este elemento?')) {
+        element.remove()
+        removeElementFromStorage(element.id)
+      }
+    } else {
+      alert('Solo puedes eliminar elementos de texto agregados. Para modificar contenido existente, usa el modo edición.')
+    }
   }
 
   const handleContentChange = (e) => {
@@ -141,7 +166,6 @@ export default function AdvancedEditor({ isOpen, onClose, currentPage }) {
   const saveChanges = () => {
     if (selectedElement) {
       saveElementToStorage(selectedElement)
-      alert('Cambios guardados correctamente!')
     }
     setIsEditing(false)
     setSelectedElement(null)
@@ -149,28 +173,24 @@ export default function AdvancedEditor({ isOpen, onClose, currentPage }) {
 
   const saveElementToStorage = (element) => {
     const elementData = {
-      id: element.id || `element-${Date.now()}`,
+      id: element.id,
       html: element.innerHTML,
       type: element.tagName.toLowerCase(),
-      styles: {
-        position: element.style.position,
+      position: {
         left: element.style.left,
-        top: element.style.top,
-        width: element.style.width,
-        height: element.style.height,
+        top: element.style.top
+      },
+      styles: {
         fontSize: element.style.fontSize,
         color: element.style.color,
-        backgroundColor: element.style.backgroundColor
+        fontWeight: element.style.fontWeight
       },
-      classes: element.className,
       page: currentPage
     }
 
-    // Guardar en localStorage
     const existingData = localStorage.getItem(`page-content-${currentPage}`)
     let elements = existingData ? JSON.parse(existingData) : []
     
-    // Actualizar o agregar elemento
     const existingIndex = elements.findIndex(el => el.id === elementData.id)
     if (existingIndex >= 0) {
       elements[existingIndex] = elementData
@@ -179,15 +199,19 @@ export default function AdvancedEditor({ isOpen, onClose, currentPage }) {
     }
     
     localStorage.setItem(`page-content-${currentPage}`, JSON.stringify(elements))
-    
-    // Asignar ID si no tenía
-    if (!element.id) {
-      element.id = elementData.id
+  }
+
+  const removeElementFromStorage = (elementId) => {
+    const existingData = localStorage.getItem(`page-content-${currentPage}`)
+    if (existingData) {
+      let elements = JSON.parse(existingData)
+      elements = elements.filter(el => el.id !== elementId)
+      localStorage.setItem(`page-content-${currentPage}`, JSON.stringify(elements))
     }
   }
 
   const cancelEdit = () => {
-    if (selectedElement) {
+    if (selectedElement && originalContent) {
       selectedElement.innerHTML = originalContent
     }
     setIsEditing(false)
@@ -195,30 +219,15 @@ export default function AdvancedEditor({ isOpen, onClose, currentPage }) {
   }
 
   const resetPage = () => {
-    if (confirm('¿Estás seguro de que quieres restablecer toda la página a su estado original?')) {
+    if (confirm('¿Restablecer toda la página? Se perderán todos los cambios.')) {
+      // Eliminar elementos nuevos del DOM
+      document.querySelectorAll('.editable-text-element').forEach(el => el.remove())
+      
+      // Limpiar localStorage
       localStorage.removeItem(`page-content-${currentPage}`)
+      
+      // Recargar la página
       window.location.reload()
-    }
-  }
-
-  const makeDraggable = () => {
-    if (selectedElement) {
-      selectedElement.style.cursor = 'move'
-      selectedElement.draggable = true
-      
-      selectedElement.addEventListener('dragstart', (e) => {
-        e.dataTransfer.setData('text/plain', selectedElement.id)
-      })
-      
-      selectedElement.addEventListener('dragend', (e) => {
-        const rect = selectedElement.getBoundingClientRect()
-        selectedElement.style.left = `${rect.left}px`
-        selectedElement.style.top = `${rect.top}px`
-        selectedElement.style.position = 'absolute'
-        saveElementToStorage(selectedElement)
-      })
-      
-      alert('Elemento ahora es arrastrable. Arrástralo para moverlo.')
     }
   }
 
@@ -227,98 +236,114 @@ export default function AdvancedEditor({ isOpen, onClose, currentPage }) {
   return (
     <>
       {/* Overlay de edición */}
-      <div className="fixed inset-0 bg-blue-100 bg-opacity-20 z-40 cursor-crosshair">
+      <div className="fixed inset-0 bg-blue-100 bg-opacity-20 z-40" style={{ cursor: getCursorStyle() }}>
         <div className="absolute top-4 left-4 bg-blue-600 text-white px-4 py-2 rounded-lg shadow-lg">
           <i className="fa-solid fa-pen-to-square mr-2"></i>
-          Modo Edición Avanzado - {editMode === 'select' ? 'Seleccionar' : editMode === 'text' ? 'Agregar Texto' : 'Eliminar'}
+          Modo Edición - {editMode === 'select' ? 'Seleccionar (doble clic)' : editMode === 'text' ? 'Agregar Texto' : 'Eliminar'}
         </div>
       </div>
 
-      {/* Panel de herramientas avanzado */}
-      <div className="fixed top-4 right-4 bg-gray-800 text-white p-4 rounded-lg shadow-lg z-50 w-64">
+      {/* Panel de herramientas */}
+      <div className="editor-toolbar fixed top-20 right-4 bg-gray-800 text-white p-4 rounded-lg shadow-lg z-50 w-64">
         <h3 className="font-bold mb-3 text-center">Herramientas de Edición</h3>
         
-        <div className="grid grid-cols-2 gap-2 mb-4">
+        <div className="grid grid-cols-3 gap-2 mb-4">
           <button 
             onClick={() => setEditMode('select')}
-            className={`p-2 rounded ${editMode === 'select' ? 'bg-blue-600' : 'bg-gray-600'} hover:bg-blue-700`}
-            title="Modo Selección"
+            className={`p-3 rounded ${editMode === 'select' ? 'bg-blue-600' : 'bg-gray-600'} hover:bg-blue-700 transition-colors`}
+            title="Modo Selección (doble clic para editar)"
           >
-            <i className="fa-solid fa-mouse-pointer"></i>
+            <i className="fa-solid fa-mouse-pointer block text-center mb-1"></i>
+            <span className="text-xs">Seleccionar</span>
           </button>
+          
           <button 
             onClick={() => setEditMode('text')}
-            className={`p-2 rounded ${editMode === 'text' ? 'bg-green-600' : 'bg-gray-600'} hover:bg-green-700`}
-            title="Agregar Texto"
+            className={`p-3 rounded ${editMode === 'text' ? 'bg-green-600' : 'bg-gray-600'} hover:bg-green-700 transition-colors`}
+            title="Agregar nuevo texto"
           >
-            <i className="fa-solid fa-font"></i>
+            <i className="fa-solid fa-font block text-center mb-1"></i>
+            <span className="text-xs">Agregar</span>
           </button>
+          
           <button 
             onClick={() => setEditMode('delete')}
-            className={`p-2 rounded ${editMode === 'delete' ? 'bg-red-600' : 'bg-gray-600'} hover:bg-red-700`}
-            title="Eliminar Elemento"
+            className={`p-3 rounded ${editMode === 'delete' ? 'bg-red-600' : 'bg-gray-600'} hover:bg-red-700 transition-colors`}
+            title="Eliminar elementos agregados"
           >
-            <i className="fa-solid fa-trash"></i>
-          </button>
-          <button 
-            onClick={makeDraggable}
-            className="p-2 rounded bg-purple-600 hover:bg-purple-700"
-            title="Hacer Arrastrable"
-          >
-            <i className="fa-solid fa-arrows-up-down-left-right"></i>
+            <i className="fa-solid fa-trash block text-center mb-1"></i>
+            <span className="text-xs">Eliminar</span>
           </button>
         </div>
 
-        <div className="flex flex-col gap-2">
+        <div className="space-y-2">
           <button 
             onClick={resetPage}
-            className="px-3 py-2 bg-yellow-600 rounded hover:bg-yellow-700 text-sm"
+            className="w-full px-3 py-2 bg-yellow-600 rounded hover:bg-yellow-700 text-sm flex items-center justify-center"
           >
-            <i className="fa-solid fa-undo mr-1"></i> Restablecer Página
+            <i className="fa-solid fa-undo mr-2"></i>
+            Restablecer Página
           </button>
+          
           <button 
             onClick={onClose}
-            className="px-3 py-2 bg-green-600 rounded hover:bg-green-700 text-sm"
+            className="w-full px-3 py-2 bg-green-600 rounded hover:bg-green-700 text-sm flex items-center justify-center"
           >
-            <i className="fa-solid fa-check mr-1"></i> Guardar y Salir
+            <i className="fa-solid fa-check mr-2"></i>
+            Guardar y Salir
           </button>
         </div>
 
-        <div className="mt-4 text-xs text-gray-400">
-          <p>• Doble clic: Editar elemento</p>
-          <p>• Modo texto: Agregar nuevo texto</p>
-          <p>• Modo eliminar: Borrar elementos</p>
+        <div className="mt-4 p-3 bg-gray-700 rounded text-xs">
+          <p className="font-bold mb-2">Instrucciones:</p>
+          <ul className="space-y-1">
+            <li>• <span className="font-semibold">Seleccionar:</span> Doble clic en cualquier texto para editarlo</li>
+            <li>• <span className="font-semibold">Agregar:</span> Clic donde quieras agregar texto nuevo</li>
+            <li>• <span className="font-semibold">Eliminar:</span> Clic en elementos agregados para borrarlos</li>
+            <li>• <span className="font-semibold">Mover:</span> Arrastra los elementos nuevos para reposicionarlos</li>
+          </ul>
         </div>
       </div>
 
-      {/* Editor de texto flotante */}
+      {/* Editor de texto */}
       {isEditing && selectedElement && (
         <div 
           ref={editorRef}
-          className="fixed bg-gray-800 text-white p-4 rounded-lg shadow-lg z-50 w-96"
+          className="fixed bg-gray-800 text-white p-4 rounded-lg shadow-lg z-50 w-96 editor-toolbar"
           style={{
-            left: `${editorPosition.x}px`,
-            top: `${editorPosition.y}px`,
-            transform: 'translate(-50%, -100%)'
+            left: '50%',
+            top: '50%',
+            transform: 'translate(-50%, -50%)'
           }}
         >
-          <h4 className="font-bold mb-2">Editor de Contenido</h4>
+          <div className="flex justify-between items-center mb-3">
+            <h4 className="font-bold">Editor de Texto</h4>
+            <button 
+              onClick={cancelEdit}
+              className="text-gray-400 hover:text-white"
+            >
+              <i className="fa-solid fa-times"></i>
+            </button>
+          </div>
+          
           <textarea
             value={selectedElement.innerHTML}
             onChange={handleContentChange}
-            className="w-full p-2 text-black rounded mb-2"
-            rows="6"
+            className="w-full p-3 text-black rounded mb-3 resize-none"
+            rows="8"
+            placeholder="Escribe tu contenido aquí..."
           />
+          
           <div className="flex justify-end gap-2">
             <button 
               onClick={cancelEdit}
-              className="px-3 py-1 bg-gray-600 rounded hover:bg-gray-700 text-sm"
+              className="px-4 py-2 bg-gray-600 rounded hover:bg-gray-700"
             >
               Cancelar
             </button>
             <button 
               onClick={saveChanges}
-              className="px-3 py-1 bg-blue-600 rounded hover:bg-blue-700 text-sm"
+              className="px-4 py-2 bg-blue-600 rounded hover:bg-blue-700"
             >
               Guardar
             </button>
