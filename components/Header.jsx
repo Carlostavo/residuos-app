@@ -31,13 +31,14 @@ export default function Header() {
       setShowLoginModal(false)
       setEmail('')
       setPassword('')
-      router.refresh() // Refrescar para actualizar el estado de autenticación
+      router.refresh()
     }
     setLoginLoading(false)
   }
 
   const handleLogout = async () => {
     await supabase.auth.signOut()
+    setShowEditor(false) // Cerrar editor al hacer logout
     router.push('/')
     router.refresh()
   }
@@ -48,9 +49,8 @@ export default function Header() {
       return
     }
     
-    // Verificar si el usuario tiene permisos para editar
     if (role === 'admin' || role === 'tecnico') {
-      setShowEditor(true)
+      setShowEditor(!showEditor) // Alternar editor
     } else {
       alert('No tienes permisos para editar el contenido. Contacta al administrador.')
     }
@@ -72,18 +72,19 @@ export default function Header() {
           <Link href="/formularios">Formularios</Link>
 
           {loading ? (
-            // Mostrar loading mientras se verifica la autenticación
             <div className="ml-4 px-4 py-2 bg-gray-300 text-gray-600 rounded-full animate-pulse">
               Cargando...
             </div>
           ) : session ? (
             <>
-              {/* Botón Editar - solo visible para usuarios autenticados */}
               <button
                 onClick={handleEditClick}
-                className="ml-4 px-4 py-2 bg-green-600 text-white rounded-full hover:bg-green-700"
+                className={`ml-4 px-4 py-2 rounded-full ${
+                  showEditor ? 'bg-blue-600' : 'bg-green-600'
+                } text-white hover:bg-opacity-90`}
               >
-                <i className="fa-solid fa-pen-to-square mr-2"></i>Editar
+                <i className="fa-solid fa-pen-to-square mr-2"></i>
+                {showEditor ? 'Saliendo edición...' : 'Editar'}
               </button>
               
               <button
@@ -172,14 +173,12 @@ export default function Header() {
         </div>
       )}
 
-      {/* Editor Integrado - solo se muestra si el usuario tiene permisos */}
-      {showEditor && (role === 'admin' || role === 'tecnico') && (
-        <InlineEditor 
-          isOpen={showEditor} 
-          onClose={() => setShowEditor(false)} 
-          currentPage={pathname} 
-        />
-      )}
+      {/* Editor Integrado */}
+      <InlineEditor 
+        isOpen={showEditor} 
+        onClose={() => setShowEditor(false)} 
+        currentPage={pathname} 
+      />
     </>
   )
 }
