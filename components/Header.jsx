@@ -36,10 +36,11 @@ export default function Header() {
   }
 
   const handleLogout = async () => {
-    await supabase.auth.signOut()
-    setShowEditor(false)
-    window.location.reload()
-  }
+  await supabase.auth.signOut()
+  setShowEditor(false)
+  disableEditMode() // Asegurar que el modo edición se desactive
+  window.location.reload()
+}
 
   const handleEditClick = () => {
     if (!session) {
