@@ -3,43 +3,70 @@
 @tailwind utilities;
 
 /* Estilos para el editor avanzado */
-.new-text-element {
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  transition: all 0.3s ease;
-}
-
-.new-text-element:hover {
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-}
-
-/* Hacer todos los elementos potencialmente editables */
-h1, h2, h3, h4, h5, h6, p, span, div, section, article {
+.editor-mode {
   position: relative;
 }
 
-/* Estilo para elementos editables durante el modo edición */
-.editor-mode [data-editable],
-.editor-mode .editable {
-  outline: 2px dashed rgba(59, 130, 246, 0.5) !important;
-  outline-offset: 2px;
-  transition: outline 0.2s ease;
+.editor-mode * {
+  position: relative;
 }
 
-.editor-mode [data-editable]:hover,
-.editor-mode .editable:hover {
-  outline: 2px solid #3b82f6 !important;
+.editable-text-element {
+  transition: all 0.3s ease;
+  cursor: grab !important;
+}
+
+.editable-text-element:hover {
+  box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.4);
+  transform: scale(1.02);
+}
+
+.editable-text-element:active {
+  cursor: grabbing !important;
+}
+
+/* Mejoras para elementos editables */
+[contenteditable="true"]:focus {
+  outline: 2px solid #3b82f6;
   background-color: rgba(59, 130, 246, 0.05);
 }
 
-/* Cursor personalizado para diferentes modos */
-body.editor-mode-select {
-  cursor: crosshair;
+/* Indicador visual de elementos editables en modo edición */
+.editor-mode h1,
+.editor-mode h2,
+.editor-mode h3,
+.editor-mode h4,
+.editor-mode h5,
+.editor-mode h6,
+.editor-mode p,
+.editor-mode span,
+.editor-mode div:not(.editor-toolbar) {
+  border-radius: 4px;
+  transition: all 0.2s ease;
 }
 
-body.editor-mode-text {
-  cursor: text;
+.editor-mode h1:hover,
+.editor-mode h2:hover,
+.editor-mode h3:hover,
+.editor-mode h4:hover,
+.editor-mode h5:hover,
+.editor-mode h6:hover,
+.editor-mode p:hover,
+.editor-mode span:hover,
+.editor-mode div:not(.editor-toolbar):hover {
+  background-color: rgba(59, 130, 246, 0.1) !important;
+  outline: 2px dashed rgba(59, 130, 246, 0.5) !important;
 }
 
-body.editor-mode-delete {
-  cursor: no-drop;
+/* Estilos para el toolbar del editor */
+.editor-toolbar {
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+}
+
+.editor-toolbar button {
+  transition: all 0.2s ease;
+}
+
+.editor-toolbar button:hover {
+  transform: translateY(-1px);
 }
