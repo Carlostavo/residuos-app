@@ -1,19 +1,20 @@
+
 import Header from '../components/Header';
-import Footer from '../components/Footer';
 import FloatingToolbar from '../components/FloatingToolbar';
+import EditOverlay from '../components/EditOverlay';
 
 export default function Page({ editable, setEditable }) {
   return (
     <div>
       <Header editable={editable} setEditable={setEditable} />
-      <main className="container" style={{marginTop:16}}>
-        <section className="hero">
-          <h2>Formularios</h2>
-          <p>Formularios para recolección de datos.</p>
+      <main className="container-max py-6">
+        <section className="bg-white rounded-xl p-6 shadow">
+          <h2 className="text-2xl font-bold">Formularios</h2>
+          <p className="mt-2 text-slate-700">Formularios para recolección de datos.</p>
         </section>
-        <Footer />
       </main>
-      <FloatingToolbar visible={editable} />
+      <FloatingToolbar visible={editable} onAdd={(t)=> window.dispatchEvent(new CustomEvent('add-element',{detail:t}))} onStyle={(s)=> window.dispatchEvent(new CustomEvent('editor-style',{detail:s}))} />
+      <EditOverlay pageId="formularios" open={(typeof window !== 'undefined' && localStorage.getItem('pae_edit_mode')==='true')} onClose={()=>{ localStorage.setItem('pae_edit_mode','false'); setEditable(false); }} />
     </div>
   );
 }

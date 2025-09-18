@@ -1,4 +1,5 @@
--- Supabase schema for Residuos App
+
+-- Supabase schema for PAE Tailwind Pixel-Perfect
 
 create table if not exists public.user_roles (
   user_id uuid references auth.users(id) on delete cascade,
@@ -8,20 +9,17 @@ create table if not exists public.user_roles (
 
 create table if not exists public.pages (
   id text primary key,
-  content jsonb not null default '[]'::jsonb,
+  content text not null default '[]',
   updated_at timestamp with time zone default now()
 );
 
 alter table public.user_roles enable row level security;
 alter table public.pages enable row level security;
 
-create policy if not exists "select user_roles authenticated" on public.user_roles
-  for select using (auth.role() is not null);
-
-create policy if not exists "public select pages" on public.pages
+create policy if not exists "public_select_pages" on public.pages
   for select using (true);
 
-create policy if not exists "edit pages admin tecnico" on public.pages
+create policy if not exists "edit_pages_admin_tecnico" on public.pages
   for insert, update, delete using (
     exists (
       select 1 from public.user_roles ur
