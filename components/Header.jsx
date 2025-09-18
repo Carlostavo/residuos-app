@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useAuth } from '../lib/useAuth'
 import { supabase } from '../lib/supabaseClient'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 export default function Header() {
   const pathname = usePathname()
@@ -14,6 +14,17 @@ export default function Header() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState(null)
   const [loginLoading, setLoginLoading] = useState(false)
+  const [editingElement, setEditingElement] = useState(null)
+  const [editContent, setEditContent] = useState('')
+
+  useEffect(() => {
+    // Cargar estado del editor al recargar
+    const savedEditorState = localStorage.getItem('editor-active')
+    if (savedEditorState === 'true' && (role === 'admin' || role === 'tecnico')) {
+      setShowEditor(true)
+      setTimeout(() => enableEditMode(), 100)
+    }
+  }, [role])
 
   const handleLogin = async (e) => {
     e.preventDefault()
@@ -48,9 +59,12 @@ export default function Header() {
     }
     
     if (role === 'admin' || role === 'tecnico') {
-      setShowEditor(!showEditor)
-      if (!showEditor) {
-        enableEditMode()
+      const newState = !showEditor
+      setShowEditor(newState)
+      localStorage.setItem('editor-active', newState.toString())
+      
+      if (newState) {
+        setTimeout(() => enableEditMode(), 100)
       } else {
         disableEditMode()
       }
@@ -61,66 +75,99 @@ export default function Header() {
 
   const enableEditMode = () => {
     document.body.classList.add('edit-mode')
+    
+    // Hacer elementos editables
     document.querySelectorAll('.editable-content').forEach(el => {
-      el.setAttribute('contenteditable', 'true')
-      el.classList.add('editable-active')
+      el.setAttribute('contenteditable', 'false') // Inicialmente no editable
       makeElementDraggable(el)
     })
+    
+    // Cargar posiciones guardadas
+    loadSavedPositions()
   }
 
   const disableEditMode = () => {
     document.body.classList.remove('edit-mode')
     document.querySelectorAll('.editable-content').forEach(el => {
       el.setAttribute('contenteditable', 'false')
-      el.classList.remove('editable-active')
+      el.classList.remove('editable-active', 'dragging')
+      el.style.cursor = 'default'
     })
   }
 
   const makeElementDraggable = (element) => {
     let isDragging = false
-    let offsetX, offsetY
-    let originalPosition = {}
+    let startX, startY, initialLeft, initialTop
 
-    element.addEventListener('mousedown', (e) => {
-      if (e.target === element || !e.target.closest('button, a, input, textarea')) {
-        isDragging = true
-        originalPosition = {
-          left: element.style.left || '0',
-          top: element.style.top || '0'
-        }
-        offsetX = e.clientX - element.getBoundingClientRect().left
-        offsetY = e.clientY - element.getBoundingClientRect().top
-        element.style.cursor = 'grabbing'
-        element.style.zIndex = '1000'
-        element.classList.add('dragging')
+    const onMouseDown = (e) => {
+      if (e.button !== 0 || e.target.closest('button, a, input, textarea')) return
+      
+      isDragging = true
+      startX = e.clientX
+      startY = e.clientY
+      
+      // Guardar posición inicial
+      const style = window.getComputedStyle(element)
+      initialLeft = parseInt(style.left) || 0
+      initialTop = parseInt(style.top) || 0
+      
+      element.classList.add('dragging')
+      element.style.cursor = 'grabbing'
+      element.style.zIndex = '1000'
+      
+      e.preventDefault()
+    }
+
+    const onMouseMove = (e) => {
+      if (!isDragging) return
+      
+      const dx = e.clientX - startX
+      const dy = e.clientY - startY
+      
+      // Limitar movimiento dentro del contenedor padre
+      const parent = element.parentElement
+      const parentRect = parent.getBoundingClientRect()
+      const elementRect = element.getBoundingClientRect()
+      
+      let newLeft = initialLeft + dx
+      let newTop = initialTop + dy
+      
+      // Limitar para que no salga de los bordes horizontales
+      if (newLeft < 0) newLeft = 0
+      if (newLeft + elementRect.width > parentRect.width) {
+        newLeft = parentRect.width - elementRect.width
       }
-    })
+      
+      // Solo permitir movimiento vertical libre, horizontal limitado
+      element.style.left = `${newLeft}px`
+      element.style.top = `${newTop}px`
+    }
 
-    document.addEventListener('mousemove', (e) => {
-      if (isDragging) {
-        element.style.position = 'relative'
-        element.style.left = `${e.clientX - offsetX}px`
-        element.style.top = `${e.clientY - offsetY}px`
-      }
-    })
+    const onMouseUp = () => {
+      if (!isDragging) return
+      
+      isDragging = false
+      element.classList.remove('dragging')
+      element.style.cursor = 'grab'
+      element.style.zIndex = ''
+      
+      // Guardar posición
+      saveElementPosition(element.id, {
+        left: element.style.left,
+        top: element.style.top
+      })
+      
+      // Remover event listeners temporales
+      document.removeEventListener('mousemove', onMouseMove)
+      document.removeEventListener('mouseup', onMouseUp)
+    }
 
-    document.addEventListener('mouseup', () => {
-      if (isDragging) {
-        isDragging = false
-        element.style.cursor = 'grab'
-        element.classList.remove('dragging')
-        
-        // Guardar posición en localStorage
-        saveElementPosition(element.id, {
-          left: element.style.left,
-          top: element.style.top
-        })
-      }
-    })
-
-    // Cargar posición guardada si existe
-    loadElementPosition(element.id, element)
+    element.addEventListener('mousedown', onMouseDown)
     
+    // Agregar event listeners temporales para drag
+    document.addEventListener('mousemove', onMouseMove)
+    document.addEventListener('mouseup', onMouseUp)
+
     element.style.cursor = 'grab'
   }
 
@@ -135,31 +182,51 @@ export default function Header() {
     localStorage.setItem(`editor-positions-${page}`, JSON.stringify(positions))
   }
 
-  const loadElementPosition = (id, element) => {
-    if (!id) return
-    
+  const loadSavedPositions = () => {
     const page = pathname
     const savedData = localStorage.getItem(`editor-positions-${page}`)
     if (savedData) {
       const positions = JSON.parse(savedData)
-      if (positions[id]) {
-        element.style.position = 'relative'
-        element.style.left = positions[id].left
-        element.style.top = positions[id].top
-      }
+      Object.keys(positions).forEach(id => {
+        const element = document.getElementById(id)
+        if (element && positions[id]) {
+          element.style.position = 'relative'
+          element.style.left = positions[id].left
+          element.style.top = positions[id].top
+        }
+      })
     }
+  }
+
+  const openTextEditor = (element) => {
+    setEditingElement(element)
+    setEditContent(element.innerHTML)
+  }
+
+  const saveTextEdit = () => {
+    if (editingElement) {
+      editingElement.innerHTML = editContent
+      saveElementContent(editingElement.id, editContent)
+      setEditingElement(null)
+      setEditContent('')
+    }
+  }
+
+  const saveElementContent = (id, content) => {
+    if (!id) return
+    
+    const page = pathname
+    const savedData = localStorage.getItem(`editor-content-${page}`)
+    let contents = savedData ? JSON.parse(savedData) : {}
+    
+    contents[id] = content
+    localStorage.setItem(`editor-content-${page}`, JSON.stringify(contents))
   }
 
   const saveAllContent = () => {
     document.querySelectorAll('.editable-content').forEach(el => {
       if (el.id) {
-        const content = el.innerHTML
-        const page = pathname
-        const savedData = localStorage.getItem(`editor-content-${page}`)
-        let contents = savedData ? JSON.parse(savedData) : {}
-        
-        contents[el.id] = content
-        localStorage.setItem(`editor-content-${page}`, JSON.stringify(contents))
+        saveElementContent(el.id, el.innerHTML)
       }
     })
     alert('Contenido guardado correctamente')
@@ -310,6 +377,47 @@ export default function Header() {
                 ¿No tienes cuenta? Regístrate desde Supabase Auth o pide a un admin.
               </p>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Editor de Texto Modal */}
+      {editingElement && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-lg w-full max-w-2xl overflow-hidden">
+            <div className="flex justify-between items-center p-4 border-b">
+              <h2 className="text-xl font-bold">Editar Contenido</h2>
+              <button 
+                onClick={() => setEditingElement(null)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <i className="fa-solid fa-xmark text-xl"></i>
+              </button>
+            </div>
+            
+            <div className="p-6">
+              <textarea
+                value={editContent}
+                onChange={(e) => setEditContent(e.target.value)}
+                className="w-full h-64 p-4 border rounded-lg resize-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                placeholder="Escribe tu contenido aquí..."
+              />
+              
+              <div className="flex justify-end gap-3 mt-4">
+                <button
+                  onClick={() => setEditingElement(null)}
+                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={saveTextEdit}
+                  className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                >
+                  Guardar Cambios
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}
