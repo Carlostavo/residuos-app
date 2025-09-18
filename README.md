@@ -1,19 +1,17 @@
-# Residuos Next.js (Scaffold)
-Proyecto generado automáticamente que migra el HTML original a Next.js.
-Rutas incluidas:
-- / (Inicio)
-- /indicadores
-- /reportes
-- /formularios
-- /metas
-- /avances
-- /editor (Edición avanzada — sólo visible para roles 'admin' y 'tecnico')
+# Residuos Next.js - Advanced Editor Scaffold
 
-Cómo usar:
-1. Instala dependencias: `npm install`
-2. Configura `.env.local` con tus credenciales de Supabase.
-3. Levanta el proyecto: `npm run dev`
+Features:
+- Rich text editor (React-Quill) with formatting similar to Word (bold, italic, underline, color, font sizes, lists, alignment, links).
+- Block editor: Text blocks (rich), Image (via URL), Video (via URL/embed).
+- Role-based editing: only users with role 'admin' or 'tecnico' see editor controls.
+- Secure Supabase authentication and a server-side save endpoint using the Service Role key.
 
-NOTAS:
-- Los enlaces y el botón de edición sólo aparecen si el usuario autenticado tiene rol 'admin' o 'tecnico'.
-- Asegúrate de crear las tablas `paginas` y `user_roles` en Supabase y asignar roles a los usuarios.
+Setup:
+1. `npm install`
+2. Configure `.env.local` with your Supabase project values.
+3. Create tables `paginas` and `user_roles` in Supabase (SQL provided in /sql).
+4. `npm run dev`
+
+Security notes:
+- Keep SUPABASE_SERVICE_ROLE_KEY secret and only in server env (Vercel/Netlify secrets).
+- The API endpoint `/api/savePage` verifies the user's access token and uses the service role to upsert content.
