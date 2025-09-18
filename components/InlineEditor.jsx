@@ -1,13 +1,16 @@
 'use client'
 import { useState, useEffect } from 'react'
+import { useAuth } from '../lib/useAuth'
 
 export default function InlineEditor({ isOpen, onClose, currentPage }) {
   const [selectedElement, setSelectedElement] = useState(null)
   const [originalContent, setOriginalContent] = useState('')
   const [isEditing, setIsEditing] = useState(false)
+  const { role } = useAuth()
 
   useEffect(() => {
-    if (isOpen) {
+    // Verificar permisos antes de activar el editor
+    if (isOpen && (role === 'admin' || role === 'tecnico')) {
       // Activar modo edición
       document.querySelectorAll('.editable').forEach(el => {
         el.style.outline = '2px dashed #3b82f6'
@@ -19,11 +22,12 @@ export default function InlineEditor({ isOpen, onClose, currentPage }) {
         el.style.outline = 'none'
         el.style.cursor = 'default'
       })
+      onClose() // Cerrar editor si no tiene permisos
     }
-  }, [isOpen])
+  }, [isOpen, role, onClose])
 
   const handleElementClick = (e) => {
-    if (!isOpen) return
+    if (!isOpen || !(role === 'admin' || role === 'tecnico')) return
     
     e.stopPropagation()
     const element = e.target.closest('.editable')
@@ -41,7 +45,7 @@ export default function InlineEditor({ isOpen, onClose, currentPage }) {
   }
 
   const saveChanges = () => {
-    if (selectedElement) {
+    if (selectedElement && (role === 'admin' || role === 'tecnico')) {
       // Guardar cambios en localStorage
       const pageElements = Array.from(document.querySelectorAll('.editable')).map(el => ({
         id: el.id || Math.random().toString(36).substr(2, 9),
@@ -50,6 +54,7 @@ export default function InlineEditor({ isOpen, onClose, currentPage }) {
       }))
       
       localStorage.setItem(`page-content-${currentPage}`, JSON.stringify(pageElements))
+      alert('Cambios guardados correctamente!')
     }
     setIsEditing(false)
     setSelectedElement(null)
@@ -73,11 +78,14 @@ export default function InlineEditor({ isOpen, onClose, currentPage }) {
   }
 
   const resetPage = () => {
-    localStorage.removeItem(`page-content-${currentPage}`)
-    window.location.reload()
+    if (role === 'admin' || role === 'tecnico') {
+      localStorage.removeItem(`page-content-${currentPage}`)
+      window.location.reload()
+    }
   }
 
-  if (!isOpen) return null
+  // No mostrar editor si no tiene permisos
+  if (!isOpen || !(role === 'admin' || role === 'tecnico')) return null
 
   return (
     <>
