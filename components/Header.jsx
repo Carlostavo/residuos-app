@@ -1,14 +1,17 @@
 'use client'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import { useAuth } from '../lib/useAuth'
 import { supabase } from '../lib/supabaseClient'
 import { useState } from 'react'
+import EditorCanvas from './EditorCanvas'
 
 export default function Header() {
   const router = useRouter()
+  const pathname = usePathname()
   const { session, role } = useAuth()
   const [showLoginModal, setShowLoginModal] = useState(false)
+  const [showEditor, setShowEditor] = useState(false)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState(null)
@@ -28,7 +31,7 @@ export default function Header() {
       setShowLoginModal(false)
       setEmail('')
       setPassword('')
-      router.refresh() // Refrescar para actualizar el estado de autenticación
+      router.refresh()
     }
     setLoading(false)
   }
@@ -59,7 +62,7 @@ export default function Header() {
               {/* Mostrar botón Editar solo si es admin o tecnico */}
               {(role === 'admin' || role === 'tecnico') && (
                 <button
-                  onClick={() => alert('Entraste en modo edición ✍')}
+                  onClick={() => setShowEditor(true)}
                   className="ml-4 px-4 py-2 bg-green-600 text-white rounded-full"
                 >
                   Editar
@@ -150,6 +153,13 @@ export default function Header() {
           </div>
         </div>
       )}
+
+      {/* Editor Canvas */}
+      <EditorCanvas 
+        isOpen={showEditor} 
+        onClose={() => setShowEditor(false)} 
+        currentPage={pathname} 
+      />
     </>
   )
 }
