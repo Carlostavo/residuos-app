@@ -9,17 +9,17 @@ import InlineEditor from './InlineEditor'
 export default function Header() {
   const router = useRouter()
   const pathname = usePathname()
-  const { session, role } = useAuth()
+  const { session, role, loading } = useAuth()
   const [showLoginModal, setShowLoginModal] = useState(false)
   const [showEditor, setShowEditor] = useState(false)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState(null)
-  const [loading, setLoading] = useState(false)
+  const [loginLoading, setLoginLoading] = useState(false)
 
   const handleLogin = async (e) => {
     e.preventDefault()
-    setLoading(true)
+    setLoginLoading(true)
     setError(null)
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
@@ -31,15 +31,29 @@ export default function Header() {
       setShowLoginModal(false)
       setEmail('')
       setPassword('')
-      router.refresh()
+      router.refresh() // Refrescar para actualizar el estado de autenticación
     }
-    setLoading(false)
+    setLoginLoading(false)
   }
 
   const handleLogout = async () => {
     await supabase.auth.signOut()
     router.push('/')
     router.refresh()
+  }
+
+  const handleEditClick = () => {
+    if (!session) {
+      setShowLoginModal(true)
+      return
+    }
+    
+    // Verificar si el usuario tiene permisos para editar
+    if (role === 'admin' || role === 'tecnico') {
+      setShowEditor(true)
+    } else {
+      alert('No tienes permisos para editar el contenido. Contacta al administrador.')
+    }
   }
 
   return (
@@ -57,20 +71,24 @@ export default function Header() {
           <Link href="/reportes">Reportes</Link>
           <Link href="/formularios">Formularios</Link>
 
-          {session ? (
+          {loading ? (
+            // Mostrar loading mientras se verifica la autenticación
+            <div className="ml-4 px-4 py-2 bg-gray-300 text-gray-600 rounded-full animate-pulse">
+              Cargando...
+            </div>
+          ) : session ? (
             <>
-              {/* Mostrar botón Editar solo si es admin o tecnico */}
-              {(role === 'admin' || role === 'tecnico') && (
-                <button
-                  onClick={() => setShowEditor(true)}
-                  className="ml-4 px-4 py-2 bg-green-600 text-white rounded-full"
-                >
-                  <i className="fa-solid fa-pen-to-square mr-2"></i>Editar
-                </button>
-              )}
+              {/* Botón Editar - solo visible para usuarios autenticados */}
+              <button
+                onClick={handleEditClick}
+                className="ml-4 px-4 py-2 bg-green-600 text-white rounded-full hover:bg-green-700"
+              >
+                <i className="fa-solid fa-pen-to-square mr-2"></i>Editar
+              </button>
+              
               <button
                 onClick={handleLogout}
-                className="ml-4 px-4 py-2 bg-red-600 text-white rounded-full"
+                className="ml-4 px-4 py-2 bg-red-600 text-white rounded-full hover:bg-red-700"
               >
                 Cerrar sesión
               </button>
@@ -78,7 +96,7 @@ export default function Header() {
           ) : (
             <button
               onClick={() => setShowLoginModal(true)}
-              className="ml-4 px-4 py-2 bg-blue-600 text-white rounded-full"
+              className="ml-4 px-4 py-2 bg-blue-600 text-white rounded-full hover:bg-blue-700"
             >
               Iniciar sesión
             </button>
@@ -140,10 +158,10 @@ export default function Header() {
               
               <button 
                 type="submit" 
-                disabled={loading}
+                disabled={loginLoading}
                 className="w-full bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 disabled:opacity-70"
               >
-                {loading ? 'Iniciando sesión...' : 'Entrar'}
+                {loginLoading ? 'Iniciando sesión...' : 'Entrar'}
               </button>
               
               <p className="text-sm text-gray-500 mt-4 text-center">
@@ -154,12 +172,14 @@ export default function Header() {
         </div>
       )}
 
-      {/* Editor Integrado */}
-      <InlineEditor 
-        isOpen={showEditor} 
-        onClose={() => setShowEditor(false)} 
-        currentPage={pathname} 
-      />
+      {/* Editor Integrado - solo se muestra si el usuario tiene permisos */}
+      {showEditor && (role === 'admin' || role === 'tecnico') && (
+        <InlineEditor 
+          isOpen={showEditor} 
+          onClose={() => setShowEditor(false)} 
+          currentPage={pathname} 
+        />
+      )}
     </>
   )
 }
