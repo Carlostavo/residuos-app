@@ -12,10 +12,18 @@ body { font-family: Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', 
 .card { border-radius: 14px; }
 
 /* Estilos para el modo edición */
-.editable {
+[data-editable="true"] {
   transition: outline 0.2s ease;
+  position: relative;
 }
 
-.editable:hover {
+[data-editable="true"]:hover {
   outline: 2px dashed #3b82f6 !important;
+  outline-offset: 2px;
+}
+
+/* Ocultar bordes editables cuando no está activo el editor */
+.editable:not([data-editable="true"]) {
+  outline: none !important;
+  cursor: default !important;
 }
