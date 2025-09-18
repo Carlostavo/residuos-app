@@ -9,6 +9,7 @@ export default function Header() {
   const pathname = usePathname()
   const { session, role, loading } = useAuth()
   const [showLoginModal, setShowLoginModal] = useState(false)
+  const [showEditor, setShowEditor] = useState(false)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState(null)
@@ -35,7 +36,142 @@ export default function Header() {
 
   const handleLogout = async () => {
     await supabase.auth.signOut()
+    setShowEditor(false)
+    disableEditMode()
     window.location.reload()
+  }
+
+  const handleEditClick = () => {
+    if (!session) {
+      setShowLoginModal(true)
+      return
+    }
+    
+    if (role === 'admin' || role === 'tecnico') {
+      setShowEditor(!showEditor)
+      if (!showEditor) {
+        enableEditMode()
+      } else {
+        disableEditMode()
+      }
+    } else {
+      alert('No tienes permisos para editar. Contacta al administrador.')
+    }
+  }
+
+  const enableEditMode = () => {
+    document.body.classList.add('edit-mode')
+    document.querySelectorAll('.editable-content').forEach(el => {
+      el.setAttribute('contenteditable', 'true')
+      el.classList.add('editable-active')
+      makeElementDraggable(el)
+    })
+  }
+
+  const disableEditMode = () => {
+    document.body.classList.remove('edit-mode')
+    document.querySelectorAll('.editable-content').forEach(el => {
+      el.setAttribute('contenteditable', 'false')
+      el.classList.remove('editable-active')
+    })
+  }
+
+  const makeElementDraggable = (element) => {
+    let isDragging = false
+    let offsetX, offsetY
+    let originalPosition = {}
+
+    element.addEventListener('mousedown', (e) => {
+      if (e.target === element || !e.target.closest('button, a, input, textarea')) {
+        isDragging = true
+        originalPosition = {
+          left: element.style.left || '0',
+          top: element.style.top || '0'
+        }
+        offsetX = e.clientX - element.getBoundingClientRect().left
+        offsetY = e.clientY - element.getBoundingClientRect().top
+        element.style.cursor = 'grabbing'
+        element.style.zIndex = '1000'
+        element.classList.add('dragging')
+      }
+    })
+
+    document.addEventListener('mousemove', (e) => {
+      if (isDragging) {
+        element.style.position = 'relative'
+        element.style.left = `${e.clientX - offsetX}px`
+        element.style.top = `${e.clientY - offsetY}px`
+      }
+    })
+
+    document.addEventListener('mouseup', () => {
+      if (isDragging) {
+        isDragging = false
+        element.style.cursor = 'grab'
+        element.classList.remove('dragging')
+        
+        // Guardar posición en localStorage
+        saveElementPosition(element.id, {
+          left: element.style.left,
+          top: element.style.top
+        })
+      }
+    })
+
+    // Cargar posición guardada si existe
+    loadElementPosition(element.id, element)
+    
+    element.style.cursor = 'grab'
+  }
+
+  const saveElementPosition = (id, position) => {
+    if (!id) return
+    
+    const page = pathname
+    const savedData = localStorage.getItem(`editor-positions-${page}`)
+    let positions = savedData ? JSON.parse(savedData) : {}
+    
+    positions[id] = position
+    localStorage.setItem(`editor-positions-${page}`, JSON.stringify(positions))
+  }
+
+  const loadElementPosition = (id, element) => {
+    if (!id) return
+    
+    const page = pathname
+    const savedData = localStorage.getItem(`editor-positions-${page}`)
+    if (savedData) {
+      const positions = JSON.parse(savedData)
+      if (positions[id]) {
+        element.style.position = 'relative'
+        element.style.left = positions[id].left
+        element.style.top = positions[id].top
+      }
+    }
+  }
+
+  const saveAllContent = () => {
+    document.querySelectorAll('.editable-content').forEach(el => {
+      if (el.id) {
+        const content = el.innerHTML
+        const page = pathname
+        const savedData = localStorage.getItem(`editor-content-${page}`)
+        let contents = savedData ? JSON.parse(savedData) : {}
+        
+        contents[el.id] = content
+        localStorage.setItem(`editor-content-${page}`, JSON.stringify(contents))
+      }
+    })
+    alert('Contenido guardado correctamente')
+  }
+
+  const resetContent = () => {
+    if (confirm('¿Restablecer todo el contenido? Se perderán todos los cambios.')) {
+      const page = pathname
+      localStorage.removeItem(`editor-content-${page}`)
+      localStorage.removeItem(`editor-positions-${page}`)
+      window.location.reload()
+    }
   }
 
   return (
@@ -58,12 +194,47 @@ export default function Header() {
               Cargando...
             </div>
           ) : session ? (
-            <button
-              onClick={handleLogout}
-              className="ml-4 px-4 py-2 bg-red-600 text-white rounded-full hover:bg-red-700"
-            >
-              Cerrar sesión
-            </button>
+            <>
+              {(role === 'admin' || role === 'tecnico') && (
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={handleEditClick}
+                    className={`ml-4 px-4 py-2 rounded-full ${
+                      showEditor ? 'bg-blue-600' : 'bg-green-600'
+                    } text-white hover:bg-opacity-90 flex items-center`}
+                  >
+                    <i className="fa-solid fa-pen mr-2"></i>
+                    {showEditor ? 'Salir Edición' : 'Editar'}
+                  </button>
+                  
+                  {showEditor && (
+                    <>
+                      <button
+                        onClick={saveAllContent}
+                        className="ml-2 px-3 py-2 bg-green-600 text-white rounded-full hover:bg-green-700 text-sm"
+                      >
+                        <i className="fa-solid fa-save mr-1"></i>
+                        Guardar
+                      </button>
+                      <button
+                        onClick={resetContent}
+                        className="ml-2 px-3 py-2 bg-yellow-600 text-white rounded-full hover:bg-yellow-700 text-sm"
+                      >
+                        <i className="fa-solid fa-undo mr-1"></i>
+                        Resetear
+                      </button>
+                    </>
+                  )}
+                </div>
+              )}
+              
+              <button
+                onClick={handleLogout}
+                className="ml-4 px-4 py-2 bg-red-600 text-white rounded-full hover:bg-red-700"
+              >
+                Cerrar sesión
+              </button>
+            </>
           ) : (
             <button
               onClick={() => setShowLoginModal(true)}
