@@ -4,7 +4,7 @@ import { useRouter, usePathname } from 'next/navigation'
 import { useAuth } from '../lib/useAuth'
 import { supabase } from '../lib/supabaseClient'
 import { useState } from 'react'
-import EditorCanvas from './EditorCanvas'
+import InlineEditor from './InlineEditor'
 
 export default function Header() {
   const router = useRouter()
@@ -65,7 +65,7 @@ export default function Header() {
                   onClick={() => setShowEditor(true)}
                   className="ml-4 px-4 py-2 bg-green-600 text-white rounded-full"
                 >
-                  Editar
+                  <i className="fa-solid fa-pen-to-square mr-2"></i>Editar
                 </button>
               )}
               <button
@@ -154,8 +154,8 @@ export default function Header() {
         </div>
       )}
 
-      {/* Editor Canvas */}
-      <EditorCanvas 
+      {/* Editor Integrado */}
+      <InlineEditor 
         isOpen={showEditor} 
         onClose={() => setShowEditor(false)} 
         currentPage={pathname} 
