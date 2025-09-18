@@ -1,8 +1,9 @@
 'use client'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useAuth } from '@/lib/useAuth'
-import { supabase } from '@/lib/supabaseClient'
+import { useAuth } from '../lib/useAuth'
+import { supabase } from '../lib/supabaseClient'
+
 
 export default function Header() {
   const router = useRouter()
