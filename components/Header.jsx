@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useAuth } from '../lib/useAuth'
 import { supabase } from '../lib/supabaseClient'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 
 export default function Header() {
   const pathname = usePathname()
@@ -16,9 +16,10 @@ export default function Header() {
   const [loginLoading, setLoginLoading] = useState(false)
   const [selectedElement, setSelectedElement] = useState(null)
   const [editorContent, setEditorContent] = useState('')
+  const [showEditorPanel, setShowEditorPanel] = useState(false)
+  const dragInfo = useRef({ isDragging: false, element: null, startX: 0, startY: 0, startLeft: 0, startTop: 0 })
 
   useEffect(() => {
-    // Verificar si había modo edición activo
     const savedEditState = localStorage.getItem('canvas-editor-active')
     if (savedEditState === 'true' && (role === 'admin' || role === 'tecnico')) {
       setIsEditing(true)
@@ -81,101 +82,101 @@ export default function Header() {
   const disableCanvasEditor = () => {
     document.body.classList.remove('canvas-edit-mode')
     cleanupCanvasInteractions()
+    setShowEditorPanel(false)
+    setSelectedElement(null)
   }
 
   const setupCanvasInteractions = () => {
-    // Agregar event listeners para el canvas
-    document.addEventListener('click', handleCanvasClick)
     document.addEventListener('mousedown', handleMouseDown)
     document.addEventListener('mousemove', handleMouseMove)
     document.addEventListener('mouseup', handleMouseUp)
+    document.addEventListener('click', handleCanvasClick)
   }
 
   const cleanupCanvasInteractions = () => {
-    // Remover event listeners
-    document.removeEventListener('click', handleCanvasClick)
     document.removeEventListener('mousedown', handleMouseDown)
     document.removeEventListener('mousemove', handleMouseMove)
     document.removeEventListener('mouseup', handleMouseUp)
+    document.removeEventListener('click', handleCanvasClick)
   }
 
   const handleCanvasClick = (e) => {
+    if (!isEditing) return
+    
     const element = e.target.closest('.canvas-element')
-    if (element && !e.target.closest('.element-toolbar')) {
+    if (element) {
       selectElement(element)
+      e.stopPropagation()
+    } else if (e.target.closest('.content-canvas') && !e.target.closest('.canvas-element')) {
+      // Click en el canvas vacío - deseleccionar
+      setSelectedElement(null)
+      setShowEditorPanel(false)
     }
   }
 
   const handleMouseDown = (e) => {
+    if (!isEditing) return
+    
     const element = e.target.closest('.canvas-element')
-    if (element && isEditing) {
-      startDragging(element, e)
+    if (element && e.button === 0) { // Solo botón izquierdo
+      // No iniciar drag si se hace clic en un enlace o botón
+      if (e.target.closest('a, button')) return
+      
+      dragInfo.current = {
+        isDragging: true,
+        element: element,
+        startX: e.clientX,
+        startY: e.clientY,
+        startLeft: parseInt(element.style.left || 0),
+        startTop: parseInt(element.style.top || 0)
+      }
+      
+      element.classList.add('dragging')
+      document.body.style.cursor = 'grabbing'
+      e.preventDefault()
     }
   }
 
   const handleMouseMove = (e) => {
-    if (window.canvasDragging) {
-      dragElement(e)
-    }
+    if (!isEditing || !dragInfo.current.isDragging) return
+    
+    const dx = e.clientX - dragInfo.current.startX
+    const dy = e.clientY - dragInfo.current.startY
+    
+    const newLeft = dragInfo.current.startLeft + dx
+    const newTop = dragInfo.current.startTop + dy
+    
+    // Aplicar movimiento con precisión
+    dragInfo.current.element.style.left = `${newLeft}px`
+    dragInfo.current.element.style.top = `${newTop}px`
   }
 
   const handleMouseUp = () => {
-    if (window.canvasDragging) {
-      stopDragging()
-    }
-  }
-
-  const startDragging = (element, e) => {
-    window.canvasDragging = true
-    window.draggingElement = element
-    window.dragStartX = e.clientX
-    window.dragStartY = e.clientY
-    window.startLeft = parseInt(element.style.left || 0)
-    window.startTop = parseInt(element.style.top || 0)
-    
-    element.classList.add('dragging')
-    document.body.style.cursor = 'grabbing'
-  }
-
-  const dragElement = (e) => {
-    if (!window.draggingElement) return
-    
-    const dx = e.clientX - window.dragStartX
-    const dy = e.clientY - window.dragStartY
-    
-    const newLeft = window.startLeft + dx
-    const newTop = window.startTop + dy
-    
-    // Limitar al área del canvas
-    const canvas = document.querySelector('.content-canvas')
-    const canvasRect = canvas.getBoundingClientRect()
-    const elementRect = window.draggingElement.getBoundingClientRect()
-    
-    window.draggingElement.style.left = `${Math.max(0, Math.min(newLeft, canvasRect.width - elementRect.width))}px`
-    window.draggingElement.style.top = `${Math.max(0, newTop)}px`
-  }
-
-  const stopDragging = () => {
-    if (window.draggingElement) {
-      window.draggingElement.classList.remove('dragging')
-      saveElementPosition(window.draggingElement.id, {
-        left: window.draggingElement.style.left,
-        top: window.draggingElement.style.top
+    if (dragInfo.current.isDragging) {
+      dragInfo.current.element.classList.remove('dragging')
+      document.body.style.cursor = 'default'
+      
+      // Guardar posición
+      saveElementPosition(dragInfo.current.element.id, {
+        left: dragInfo.current.element.style.left,
+        top: dragInfo.current.element.style.top
       })
+      
+      dragInfo.current = { isDragging: false, element: null, startX: 0, startY: 0, startLeft: 0, startTop: 0 }
     }
-    
-    window.canvasDragging = false
-    window.draggingElement = null
-    document.body.style.cursor = 'default'
   }
 
   const selectElement = (element) => {
+    // Deseleccionar elemento actual
     document.querySelectorAll('.canvas-element').forEach(el => {
       el.classList.remove('selected')
     })
+    
+    // Seleccionar nuevo elemento
     element.classList.add('selected')
     setSelectedElement(element)
-    setEditorContent(element.innerHTML)
+    setEditorContent(element.textContent || element.innerHTML)
+    setShowEditorPanel(true)
   }
 
   const saveElementContent = () => {
@@ -264,9 +265,24 @@ export default function Header() {
     newElement.style.position = 'absolute'
     newElement.style.left = '100px'
     newElement.style.top = '100px'
+    newElement.style.minWidth = '200px'
+    newElement.style.minHeight = '40px'
     
     document.querySelector('.content-canvas').appendChild(newElement)
     selectElement(newElement)
+  }
+
+  const updateElementStyle = (property, value) => {
+    if (selectedElement) {
+      selectedElement.style[property] = value
+      saveElementData(selectedElement.id, {
+        content: selectedElement.innerHTML,
+        position: {
+          left: selectedElement.style.left,
+          top: selectedElement.style.top
+        }
+      })
+    }
   }
 
   return (
@@ -412,33 +428,86 @@ export default function Header() {
         </div>
       )}
 
-      {/* Editor de Texto Flotante */}
-      {isEditing && selectedElement && (
-        <div className="fixed top-20 right-6 bg-white rounded-2xl shadow-xl z-50 w-80 border border-gray-200">
+      {/* Panel Editor Lateral (tipo Canva) */}
+      {isEditing && showEditorPanel && selectedElement && (
+        <div className="fixed left-4 top-20 bg-white rounded-2xl shadow-xl z-50 w-80 border border-gray-200">
           <div className="p-4 border-b border-gray-200">
-            <h3 className="font-semibold text-gray-800">Editor de Texto</h3>
+            <h3 className="font-semibold text-gray-800">Editor de Elemento</h3>
             <button 
-              onClick={() => setSelectedElement(null)}
+              onClick={() => setShowEditorPanel(false)}
               className="absolute top-3 right-3 text-gray-400 hover:text-gray-600"
             >
               <i className="fa-solid fa-xmark"></i>
             </button>
           </div>
           
-          <div className="p-4">
-            <textarea
-              value={editorContent}
-              onChange={(e) => setEditorContent(e.target.value)}
-              className="w-full h-32 p-3 border rounded-lg resize-none focus:ring-2 focus:ring-green-500"
-              placeholder="Escribe tu contenido aquí..."
-            />
+          <div className="p-4 max-h-96 overflow-y-auto">
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">Contenido:</label>
+              <textarea
+                value={editorContent}
+                onChange={(e) => setEditorContent(e.target.value)}
+                className="w-full h-24 p-3 border rounded-lg resize-none focus:ring-2 focus:ring-green-500"
+                placeholder="Escribe tu contenido aquí..."
+              />
+            </div>
             
-            <div className="mt-4 flex gap-2">
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">Posición:</label>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-xs text-gray-600">X (px):</label>
+                  <input
+                    type="number"
+                    value={parseInt(selectedElement.style.left || 0)}
+                    onChange={(e) => updateElementStyle('left', `${e.target.value}px`)}
+                    className="w-full p-2 border rounded"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-gray-600">Y (px):</label>
+                  <input
+                    type="number"
+                    value={parseInt(selectedElement.style.top || 0)}
+                    onChange={(e) => updateElementStyle('top', `${e.target.value}px`)}
+                    className="w-full p-2 border rounded"
+                  />
+                </div>
+              </div>
+            </div>
+            
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">Tamaño de texto:</label>
+              <select 
+                onChange={(e) => updateElementStyle('fontSize', e.target.value)}
+                className="w-full p-2 border rounded"
+                value={selectedElement.style.fontSize || '16px'}
+              >
+                <option value="12px">Pequeño (12px)</option>
+                <option value="14px">Normal (14px)</option>
+                <option value="16px">Mediano (16px)</option>
+                <option value="20px">Grande (20px)</option>
+                <option value="24px">Muy Grande (24px)</option>
+                <option value="32px">Título (32px)</option>
+              </select>
+            </div>
+            
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">Color de texto:</label>
+              <input
+                type="color"
+                onChange={(e) => updateElementStyle('color', e.target.value)}
+                value={selectedElement.style.color || '#000000'}
+                className="w-full h-10 border rounded"
+              />
+            </div>
+            
+            <div className="flex gap-2">
               <button
-                onClick={() => setSelectedElement(null)}
+                onClick={() => setShowEditorPanel(false)}
                 className="flex-1 px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
               >
-                Cancelar
+                Cerrar
               </button>
               <button
                 onClick={saveElementContent}
