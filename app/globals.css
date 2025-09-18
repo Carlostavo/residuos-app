@@ -15,34 +15,38 @@
   padding: 30px;
   margin: 10px;
   overflow: visible !important;
+  cursor: default;
 }
 
 .canvas-edit-mode .canvas-element {
-  position: relative;
+  position: absolute;
   padding: 16px;
-  margin: 8px;
+  margin: 0;
   border-radius: 8px;
   background: white;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   border: 2px solid transparent;
-  transition: all 0.3s ease;
-  cursor: grab;
+  transition: all 0.2s ease;
+  cursor: move;
   max-width: 100%;
   min-height: 50px;
   min-width: 100px;
+  user-select: none;
+  z-index: 10;
 }
 
 .canvas-edit-mode .canvas-element:hover {
   border-color: rgba(59, 130, 246, 0.5);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
   transform: translateY(-1px);
+  z-index: 20;
 }
 
 .canvas-edit-mode .canvas-element.selected {
   border-color: #3b82f6;
   border-width: 2px;
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1), 0 4px 20px rgba(0, 0, 0, 0.2);
-  z-index: 100;
+  z-index: 30;
 }
 
 .canvas-edit-mode .canvas-element.dragging {
@@ -50,152 +54,47 @@
   box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1), 0 8px 25px rgba(0, 0, 0, 0.25);
   cursor: grabbing;
   z-index: 1000;
-  opacity: 0.9;
-  transform: scale(1.02) rotate(1deg);
+  opacity: 0.95;
+  transform: scale(1.02);
 }
 
-/* Indicador de elemento canvas */
-.canvas-element::before {
-  content: '';
-  position: absolute;
-  top: -3px;
-  left: -3px;
-  right: -3px;
-  bottom: -3px;
-  border: 2px solid transparent;
-  border-radius: 10px;
-  pointer-events: none;
+/* Permitir selección de texto dentro de elementos */
+.canvas-edit-mode .canvas-element * {
+  user-select: text;
+  cursor: text;
 }
 
-.canvas-element.selected::before {
-  border-color: #3b82f6;
-  animation: pulse-border 2s infinite;
-}
-
-@keyframes pulse-border {
-  0% { border-color: #3b82f6; }
-  50% { border-color: rgba(59, 130, 246, 0.5); }
-  100% { border-color: #3b82f6; }
-}
-
-/* Handle de redimensionamiento */
-.canvas-element .resize-handle {
-  position: absolute;
-  width: 12px;
-  height: 12px;
-  background: #3b82f6;
-  border: 2px solid white;
-  border-radius: 50%;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-
-.canvas-element:hover .resize-handle {
-  opacity: 1;
-}
-
-.resize-handle.nw {
-  top: -6px;
-  left: -6px;
-  cursor: nwse-resize;
-}
-
-.resize-handle.ne {
-  top: -6px;
-  right: -6px;
-  cursor: nesw-resize;
-}
-
-.resize-handle.sw {
-  bottom: -6px;
-  left: -6px;
-  cursor: nesw-resize;
-}
-
-.resize-handle.se {
-  bottom: -6px;
-  right: -6px;
-  cursor: nwse-resize;
-}
-
-/* Elementos de texto */
+/* Elementos de texto editables */
 .text-element {
   background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
   border-left: 4px solid #3b82f6;
+  cursor: text !important;
 }
 
-/* Toolbar de elemento */
-.element-toolbar {
+.text-element:hover {
+  cursor: text !important;
+}
+
+/* Indicador de posición */
+.position-indicator {
   position: absolute;
-  top: -40px;
+  bottom: -25px;
   left: 50%;
   transform: translateX(-50%);
-  background: #374151;
+  background: rgba(0, 0, 0, 0.7);
   color: white;
-  padding: 6px 12px;
-  border-radius: 6px;
-  display: flex;
-  gap: 8px;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-}
-
-.canvas-element:hover .element-toolbar {
-  opacity: 1;
-}
-
-.element-toolbar button {
-  padding: 4px 8px;
+  padding: 2px 8px;
   border-radius: 4px;
-  background: #4b5563;
-  color: white;
-  border: none;
-  cursor: pointer;
-  transition: background 0.2s;
-  font-size: 12px;
+  font-size: 11px;
+  white-space: nowrap;
 }
 
-.element-toolbar button:hover {
-  background: #6b7280;
-}
-
-/* Guías de alineación */
-.canvas-guide {
-  position: absolute;
-  background: rgba(239, 68, 68, 0.3);
-  z-index: 99;
-  pointer-events: none;
-}
-
-.guide-horizontal {
-  height: 1px;
-  width: 100%;
-  left: 0;
-}
-
-.guide-vertical {
-  width: 1px;
-  height: 100%;
-  top: 0;
-}
-
-/* Modo de selección */
-.canvas-edit-mode * {
-  user-select: none;
-}
-
-.canvas-edit-mode .canvas-element * {
-  user-select: text;
-}
-
-/* Estado de hover mejorado */
+/* Mejoras de precisión para el movimiento */
 .canvas-edit-mode body {
   cursor: default;
 }
 
-.canvas-edit-mode .canvas-element:hover {
+.canvas-edit-mode .canvas-element {
   cursor: grab;
 }
 
@@ -203,37 +102,12 @@
   cursor: grabbing;
 }
 
-/* Ajustes responsivos */
-@media (max-width: 768px) {
-  .canvas-edit-mode .content-canvas {
-    padding: 15px;
-    margin: 5px;
-    background-size: 15px 15px;
-  }
-  
-  .canvas-element {
-    padding: 12px;
-    margin: 6px;
-    min-height: 40px;
-    min-width: 80px;
-  }
-  
-  .element-toolbar {
-    top: -35px;
-    padding: 4px 8px;
-    font-size: 11px;
-  }
-}
-
-/* Efectos de transición suaves */
-.canvas-element {
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* Focus states para accesibilidad */
-.canvas-element:focus {
-  outline: 2px solid #3b82f6;
-  outline-offset: 2px;
+/* Ajustes para elementos dentro del canvas que no deben ser movibles */
+.canvas-edit-mode .canvas-element a,
+.canvas-edit-mode .canvas-element button,
+.canvas-edit-mode .canvas-element input,
+.canvas-edit-mode .canvas-element textarea {
+  cursor: default !important;
 }
 
 /* Estilos para el lienzo adaptable */
@@ -257,4 +131,24 @@
 
 .card-hover {
   @apply transition-all duration-300 hover:shadow-xl hover:-translate-y-1;
+}
+
+/* Efectos de transición suaves */
+.canvas-element {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Mejoras responsivas */
+@media (max-width: 768px) {
+  .canvas-edit-mode .content-canvas {
+    padding: 15px;
+    margin: 5px;
+    background-size: 15px 15px;
+  }
+  
+  .canvas-element {
+    padding: 12px;
+    min-height: 40px;
+    min-width: 80px;
+  }
 }
