@@ -1,9 +1,16 @@
+# PAE Next.js (pae-next)
+Proyecto base convertido a Next.js App Router con páginas separadas:
+- /inicio
+- /indicadores
+- /metas
+- /avances
+- /reportes
+- /formularios
+- /login (Supabase Auth)
 
-PAE Next.js Pixel-Perfect with Tailwind (improved)
-Generated: 2025-09-18T03:27:15.800912Z
+Pasos para ejecutar:
+1. Copia `.env.local.example` a `.env.local` y completa tus variables de Supabase.
+2. `npm install`
+3. `npm run dev`
 
-Run:
-1. npm install
-2. Create .env.local with NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY
-3. Run: npm run postinstall (build tailwind) then npm run dev
-4. In Supabase, execute supabase_schema.sql and add user_roles for admin/tecnico users.
+Nota: este paquete contiene la estructura y componentes principales. El editor canvas del HTML original (con arrastrar/soltar y guardado) no está 1:1 aquí por tamaño y simplicidad — puedo integrarlo en cada página si quieres que lo incluya entero.
