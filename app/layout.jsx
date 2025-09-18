@@ -2,8 +2,8 @@ import './globals.css'
 import Header from '../components/Header'
 
 export const metadata = {
-  title: 'Gestión de Residuos Sólidos — Editor Pro',
-  description: 'Plataforma con editor en línea y Supabase',
+  title: 'Gestión de Residuos Sólidos',
+  description: 'Plataforma de gestión ambiental',
 }
 
 export default function RootLayout({ children }) {
