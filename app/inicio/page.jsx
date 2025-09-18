@@ -11,28 +11,68 @@ export default function InicioPage() {
   ]
 
   return (
-    <section className="space-y-6">
-      <div className="hero text-center p-12 bg-gradient-to-br from-green-50 to-white rounded-lg shadow">
-        <h1 className="text-4xl font-bold text-green-700">
-          Sistema de Gestión de Residuos Sólidos
-        </h1>
-        <p className="text-gray-600 mt-4 max-w-2xl mx-auto">
-          La plataforma para monitorear indicadores, gestionar metas y generar reportes para una gestión ambiental eficiente.
-        </p>
-      </div>
+    <div className="canvas-container">
+      <div className="content-canvas">
+        <div className="hero-section text-center">
+          <h1 className="text-4xl md:text-5xl font-bold text-green-800 mb-4">
+            Sistema de Gestión de Residuos Sólidos
+          </h1>
+          <p className="text-lg text-gray-700 max-w-3xl mx-auto">
+            La plataforma integral para monitorear indicadores, gestionar metas y generar reportes 
+            para una gestión ambiental eficiente y sostenible.
+          </p>
+        </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 gap-6">
-        {cards.map((c) => (
-          <Card 
-            key={c.title}
-            title={c.title} 
-            desc={c.desc} 
-            icon={c.icon} 
-            color={c.color} 
-            href={c.href} 
-          />
-        ))}
+        <div className="responsive-grid">
+          {cards.map((c) => (
+            <div key={c.title} className="h-full">
+              <Card 
+                title={c.title} 
+                desc={c.desc} 
+                icon={c.icon} 
+                color={c.color} 
+                href={c.href} 
+                className="h-full card-hover"
+              />
+            </div>
+          ))}
+        </div>
+
+        {/* Sección adicional */}
+        <div className="mt-12 grid md:grid-cols-2 gap-8">
+          <div className="bg-white rounded-2xl shadow-md p-6">
+            <h2 className="text-2xl font-bold text-green-700 mb-4">¿Por qué elegirnos?</h2>
+            <ul className="space-y-3">
+              <li className="flex items-center">
+                <i className="fa-solid fa-check-circle text-green-500 mr-3"></i>
+                <span>Monitoreo en tiempo real de indicadores</span>
+              </li>
+              <li className="flex items-center">
+                <i className="fa-solid fa-check-circle text-green-500 mr-3"></i>
+                <span>Reportes automatizados y personalizables</span>
+              </li>
+              <li className="flex items-center">
+                <i className="fa-solid fa-check-circle text-green-500 mr-3"></i>
+                <span>Seguimiento detallado de metas y avances</span>
+              </li>
+            </ul>
+          </div>
+          
+          <div className="bg-white rounded-2xl shadow-md p-6">
+            <h2 className="text-2xl font-bold text-green-700 mb-4">Últimas actualizaciones</h2>
+            <div className="space-y-4">
+              <div className="border-l-4 border-blue-500 pl-4">
+                <h3 className="font-semibold">Nuevo dashboard de métricas</h3>
+                <p className="text-sm text-gray-600">Ahora con más gráficos interactivos</p>
+              </div>
+              <div className="border-l-4 border-green-500 pl-4">
+                <h3 className="font-semibold">Exportación de reportes mejorada</h3>
+                <p className="text-sm text-gray-600">Formatos PDF, Excel y CSV disponibles</p>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
-    </section>
+    </div>
   )
 }
