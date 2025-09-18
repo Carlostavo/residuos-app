@@ -1,7 +1,18 @@
 'use client'
 import Card from '../../components/Card'
+import { useEffect, useState } from 'react'
 
 export default function InicioPage() {
+  const [editableElements, setEditableElements] = useState([])
+  
+  useEffect(() => {
+    // Cargar elementos editados del localStorage
+    const savedElements = localStorage.getItem('editor-elements-/inicio')
+    if (savedElements) {
+      setEditableElements(JSON.parse(savedElements))
+    }
+  }, [])
+
   const cards = [
     { title: "Gestión de Metas", desc: "Establece y sigue tus objetivos de sostenibilidad.", icon: "fa-bullseye", color: "bg-green-600", href: "/metas" },
     { title: "Dashboard de Indicadores", desc: "Visualiza en tiempo real el rendimiento.", icon: "fa-chart-line", color: "bg-blue-500", href: "/indicadores" },
@@ -12,16 +23,44 @@ export default function InicioPage() {
 
   return (
     <section className="space-y-6">
-      <div className="hero text-center p-12 bg-gradient-to-br from-green-50 to-white rounded-lg shadow">
-        <h1 className="text-4xl font-bold text-green-700">Sistema de Gestión de Residuos Sólidos</h1>
-        <p className="text-gray-600 mt-4 max-w-2xl mx-auto">La plataforma para monitorear indicadores, gestionar metas y generar reportes para una gestión ambiental eficiente.</p>
-      </div>
+      {/* Elementos editables */}
+      {editableElements.length > 0 ? (
+        editableElements.map(element => (
+          <div 
+            key={element.id} 
+            className="relative"
+            style={{
+              position: 'absolute',
+              left: `${element.x}px`,
+              top: `${element.y}px`,
+              width: `${element.width}px`,
+              height: `${element.height}px`
+            }}
+          >
+            {element.type === 'hero' ? (
+              <div className="hero text-center p-12 bg-gradient-to-br from-green-50 to-white rounded-lg shadow">
+                <h1 className="text-4xl font-bold text-green-700">{element.content}</h1>
+              </div>
+            ) : (
+              <p className="text-gray-600 max-w-2xl mx-auto">{element.content}</p>
+            )}
+          </div>
+        ))
+      ) : (
+        // Contenido por defecto
+        <>
+          <div className="hero text-center p-12 bg-gradient-to-br from-green-50 to-white rounded-lg shadow">
+            <h1 className="text-4xl font-bold text-green-700">Sistema de Gestión de Residuos Sólidos</h1>
+            <p className="text-gray-600 mt-4 max-w-2xl mx-auto">La plataforma para monitorear indicadores, gestionar metas y generar reportes para una gestión ambiental eficiente.</p>
+          </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 gap-6">
-        {cards.map((c) => (
-          <Card key={c.title} title={c.title} desc={c.desc} icon={c.icon} color={c.color} href={c.href} />
-        ))}
-      </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 gap-6">
+            {cards.map((c) => (
+              <Card key={c.title} title={c.title} desc={c.desc} icon={c.icon} color={c.color} href={c.href} />
+            ))}
+          </div>
+        </>
+      )}
     </section>
   )
 }
