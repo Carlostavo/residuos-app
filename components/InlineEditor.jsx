@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '../lib/useAuth'
 
 export default function InlineEditor({ isOpen, onClose, currentPage }) {
@@ -8,35 +8,52 @@ export default function InlineEditor({ isOpen, onClose, currentPage }) {
   const [isEditing, setIsEditing] = useState(false)
   const { role } = useAuth()
 
-  useEffect(() => {
-    // Verificar permisos antes de activar el editor
-    if (isOpen && (role === 'admin' || role === 'tecnico')) {
-      // Activar modo edición
-      document.querySelectorAll('.editable').forEach(el => {
+  // Función para activar/desactivar el modo edición
+  const toggleEditMode = useCallback((enable) => {
+    const editables = document.querySelectorAll('.editable')
+    editables.forEach(el => {
+      if (enable) {
         el.style.outline = '2px dashed #3b82f6'
         el.style.cursor = 'pointer'
-      })
-    } else {
-      // Desactivar modo edición
-      document.querySelectorAll('.editable').forEach(el => {
+        el.setAttribute('data-editable', 'true')
+      } else {
         el.style.outline = 'none'
         el.style.cursor = 'default'
-      })
-      onClose() // Cerrar editor si no tiene permisos
-    }
-  }, [isOpen, role, onClose])
+        el.removeAttribute('data-editable')
+      }
+    })
+  }, [])
 
-  const handleElementClick = (e) => {
-    if (!isOpen || !(role === 'admin' || role === 'tecnico')) return
+  useEffect(() => {
+    if (isOpen && (role === 'admin' || role === 'tecnico')) {
+      toggleEditMode(true)
+      
+      // Agregar event listener para clics
+      document.addEventListener('click', handleElementClick)
+    } else {
+      toggleEditMode(false)
+      setIsEditing(false)
+      setSelectedElement(null)
+    }
+
+    return () => {
+      document.removeEventListener('click', handleElementClick)
+      toggleEditMode(false)
+    }
+  }, [isOpen, role, toggleEditMode])
+
+  const handleElementClick = useCallback((e) => {
+    if (!isOpen) return
     
-    e.stopPropagation()
-    const element = e.target.closest('.editable')
+    const element = e.target.closest('[data-editable="true"]')
     if (element) {
+      e.preventDefault()
+      e.stopPropagation()
       setSelectedElement(element)
       setOriginalContent(element.innerHTML)
       setIsEditing(true)
     }
-  }
+  }, [isOpen])
 
   const handleContentChange = (e) => {
     if (selectedElement) {
@@ -48,7 +65,7 @@ export default function InlineEditor({ isOpen, onClose, currentPage }) {
     if (selectedElement && (role === 'admin' || role === 'tecnico')) {
       // Guardar cambios en localStorage
       const pageElements = Array.from(document.querySelectorAll('.editable')).map(el => ({
-        id: el.id || Math.random().toString(36).substr(2, 9),
+        id: el.id,
         html: el.innerHTML,
         selector: getSelector(el)
       }))
@@ -70,21 +87,19 @@ export default function InlineEditor({ isOpen, onClose, currentPage }) {
 
   const getSelector = (el) => {
     if (el.id) return `#${el.id}`
-    if (el.className) {
-      const classes = el.className.split(' ').filter(c => !c.includes('editable')).join('.')
-      return classes ? `.${classes}` : ''
-    }
-    return el.tagName.toLowerCase()
+    return ''
   }
 
   const resetPage = () => {
     if (role === 'admin' || role === 'tecnico') {
-      localStorage.removeItem(`page-content-${currentPage}`)
-      window.location.reload()
+      if (confirm('¿Estás seguro de que quieres restablecer el contenido original? Se perderán todos los cambios.')) {
+        localStorage.removeItem(`page-content-${currentPage}`)
+        window.location.reload()
+      }
     }
   }
 
-  // No mostrar editor si no tiene permisos
+  // No mostrar editor si no está abierto o no tiene permisos
   if (!isOpen || !(role === 'admin' || role === 'tecnico')) return null
 
   return (
@@ -145,17 +160,6 @@ export default function InlineEditor({ isOpen, onClose, currentPage }) {
           </div>
         </div>
       )}
-
-      {/* Script para hacer elementos editables */}
-      <script
-        dangerouslySetInnerHTML={{
-          __html: `
-            document.addEventListener('click', function(e) {
-              ${handleElementClick.toString()}(e)
-            });
-          `
-        }}
-      />
     </>
   )
 }
