@@ -4,13 +4,11 @@ import { usePathname } from 'next/navigation'
 import { useAuth } from '../lib/useAuth'
 import { supabase } from '../lib/supabaseClient'
 import { useState } from 'react'
-import AdvancedEditor from './AdvancedEditor'
 
 export default function Header() {
   const pathname = usePathname()
   const { session, role, loading } = useAuth()
   const [showLoginModal, setShowLoginModal] = useState(false)
-  const [showEditor, setShowEditor] = useState(false)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState(null)
@@ -36,23 +34,8 @@ export default function Header() {
   }
 
   const handleLogout = async () => {
-  await supabase.auth.signOut()
-  setShowEditor(false)
-  disableEditMode() // Asegurar que el modo edición se desactive
-  window.location.reload()
-}
-
-  const handleEditClick = () => {
-    if (!session) {
-      setShowLoginModal(true)
-      return
-    }
-    
-    if (role === 'admin' || role === 'tecnico') {
-      setShowEditor(!showEditor)
-    } else {
-      alert('No tienes permisos para editar. Contacta al administrador.')
-    }
+    await supabase.auth.signOut()
+    window.location.reload()
   }
 
   return (
@@ -75,24 +58,12 @@ export default function Header() {
               Cargando...
             </div>
           ) : session ? (
-            <>
-              <button
-                onClick={handleEditClick}
-                className={`ml-4 px-4 py-2 rounded-full ${
-                  showEditor ? 'bg-blue-600' : 'bg-green-600'
-                } text-white hover:bg-opacity-90`}
-              >
-                <i className="fa-solid fa-pen-to-square mr-2"></i>
-                {showEditor ? 'Salir Edición' : 'Editar'}
-              </button>
-              
-              <button
-                onClick={handleLogout}
-                className="ml-4 px-4 py-2 bg-red-600 text-white rounded-full hover:bg-red-700"
-              >
-                Cerrar sesión
-              </button>
-            </>
+            <button
+              onClick={handleLogout}
+              className="ml-4 px-4 py-2 bg-red-600 text-white rounded-full hover:bg-red-700"
+            >
+              Cerrar sesión
+            </button>
           ) : (
             <button
               onClick={() => setShowLoginModal(true)}
@@ -171,13 +142,6 @@ export default function Header() {
           </div>
         </div>
       )}
-
-      {/* Editor Avanzado */}
-      <AdvancedEditor 
-        isOpen={showEditor} 
-        onClose={() => setShowEditor(false)} 
-        currentPage={pathname} 
-      />
     </>
   )
 }
