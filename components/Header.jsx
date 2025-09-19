@@ -45,6 +45,7 @@ export default function Header() {
           <i className="fa-solid fa-recycle"></i>
           <span>Gestión RS</span>
         </div>
+
         <nav className="flex gap-3 items-center">
           <Link href="/inicio">Inicio</Link>
           <Link href="/indicadores">Indicadores</Link>
@@ -58,12 +59,29 @@ export default function Header() {
               Cargando...
             </div>
           ) : session ? (
-            <button
-              onClick={handleLogout}
-              className="ml-4 px-4 py-2 bg-red-600 text-white rounded-full hover:bg-red-700"
-            >
-              Cerrar sesión
-            </button>
+            <>
+              {/* Botón editar */}
+              <button
+                onClick={() => window.location.href = '/editar'}
+                className="p-2 rounded-full bg-green-600 text-white hover:bg-green-700"
+                title="Editar contenido"
+              >
+                <i className="fa-solid fa-pen"></i>
+              </button>
+
+              {/* Nombre del usuario */}
+              <span className="ml-2 text-gray-700 font-medium">
+                {session.user.user_metadata?.full_name || session.user.email}
+              </span>
+
+              {/* Botón cerrar sesión */}
+              <button
+                onClick={handleLogout}
+                className="ml-4 px-4 py-2 bg-red-600 text-white rounded-full hover:bg-red-700"
+              >
+                Cerrar sesión
+              </button>
+            </>
           ) : (
             <button
               onClick={() => setShowLoginModal(true)}
