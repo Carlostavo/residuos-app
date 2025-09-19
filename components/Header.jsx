@@ -4,13 +4,12 @@ import { usePathname } from 'next/navigation'
 import { useAuth } from '../lib/useAuth'
 import { supabase } from '../lib/supabaseClient'
 import { useState } from 'react'
-import { useEdit } from '../lib/EditContext'   // 👈 añadido
+import { useEdit } from '../lib/EditContext'
 
 export default function Header() {
   const pathname = usePathname()
   const { session, role, loading } = useAuth()
-  const { isEditing, setIsEditing } = useEdit()   // 👈 estado global de edición
-
+  const { isEditing, setIsEditing } = useEdit()
   const [showLoginModal, setShowLoginModal] = useState(false)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -41,8 +40,6 @@ export default function Header() {
     window.location.reload()
   }
 
-  const isAdminOrTech = role === 'admin' || role === 'tecnico'   // 👈 validación del rol
-
   return (
     <>
       <header className="topbar flex justify-between items-center p-4 bg-white shadow-md sticky top-0 z-40">
@@ -64,10 +61,10 @@ export default function Header() {
             </div>
           ) : session ? (
             <>
-              {isAdminOrTech && (
+              {(role === 'admin' || role === 'tecnico') && (
                 <button
                   onClick={() => setIsEditing(!isEditing)}
-                  className="ml-4 px-4 py-2 bg-yellow-500 text-white rounded-full hover:bg-yellow-600"
+                  className="ml-4 px-4 py-2 bg-yellow-600 text-white rounded-full hover:bg-yellow-700"
                 >
                   {isEditing ? 'Salir edición' : 'Editar'}
                 </button>
