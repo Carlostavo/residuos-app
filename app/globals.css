@@ -22,3 +22,22 @@
 .card-hover {
   @apply transition-all duration-300 hover:shadow-xl hover:-translate-y-1;
 }
+/* Agregar al archivo globals.css */
+.dragging {
+  opacity: 0.5;
+  transform: scale(0.95);
+}
+
+.drag-over {
+  border: 2px dashed #3B82F6;
+  background-color: #EFF6FF;
+}
+
+.drag-handle {
+  cursor: move;
+  transition: opacity 0.2s;
+}
+
+.drag-handle:hover {
+  opacity: 1;
+}
