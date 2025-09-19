@@ -2,23 +2,24 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Estilos para el lienzo adaptable */
-.canvas-container {
-  @apply w-full min-h-screen bg-gradient-to-br from-gray-50 to-gray-100;
+/* Fondo cuadriculado solo cuando está en modo edición */
+.bg-grid {
+  background-image: linear-gradient(#ddd 1px, transparent 1px),
+    linear-gradient(90deg, #ddd 1px, transparent 1px);
+  background-size: 20px 20px;
 }
 
-.content-canvas {
-  @apply w-full max-w-7xl mx-auto p-6;
+/* Estilo de los bloques editables */
+[contenteditable="true"] {
+  outline: 2px dashed #4ade80;
+  outline-offset: 2px;
+  cursor: text;
+  padding: 2px;
+  border-radius: 4px;
 }
 
-.responsive-grid {
-  @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6;
-}
-
-.hero-section {
-  @apply bg-gradient-to-r from-green-50 to-emerald-100 rounded-2xl shadow-lg p-8 mb-8;
-}
-
-.card-hover {
-  @apply transition-all duration-300 hover:shadow-xl hover:-translate-y-1;
+/* Elementos movibles */
+.draggable {
+  position: absolute;
+  cursor: move;
 }
