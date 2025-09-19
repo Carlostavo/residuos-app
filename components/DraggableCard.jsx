@@ -14,10 +14,9 @@ export default function DraggableCard({
   position,
   onPositionChange,
   onTitleChange,
-  onDescChange,
-  ...props 
+  onDescChange
 }) {
-  const { isEditing, isDragging } = useEdit()
+  const { isEditing, setIsDragging } = useEdit()
   const [isDraggingLocal, setIsDraggingLocal] = useState(false)
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 })
   const cardRef = useRef(null)
@@ -26,7 +25,10 @@ export default function DraggableCard({
     if (!isEditing) return
     
     e.preventDefault()
+    e.stopPropagation()
+    
     setIsDraggingLocal(true)
+    setIsDragging(true)
     
     const rect = cardRef.current.getBoundingClientRect()
     setDragOffset({
@@ -38,15 +40,23 @@ export default function DraggableCard({
   const handleMouseMove = (e) => {
     if (!isDraggingLocal || !isEditing) return
     
-    const newX = e.clientX - dragOffset.x
-    const newY = e.clientY - dragOffset.y
+    const container = cardRef.current.parentElement
+    const containerRect = container.getBoundingClientRect()
     
-    onPositionChange(id, { x: newX, y: newY })
+    const newX = e.clientX - containerRect.left - dragOffset.x
+    const newY = e.clientY - containerRect.top - dragOffset.y
+    
+    // Limitar dentro de los bordes del contenedor
+    const boundedX = Math.max(0, Math.min(newX, containerRect.width - cardRef.current.offsetWidth))
+    const boundedY = Math.max(0, Math.min(newY, containerRect.height - cardRef.current.offsetHeight))
+    
+    onPositionChange(id, { x: boundedX, y: boundedY })
   }
 
   const handleMouseUp = () => {
     if (isDraggingLocal) {
       setIsDraggingLocal(false)
+      setIsDragging(false)
     }
   }
 
@@ -54,32 +64,35 @@ export default function DraggableCard({
     if (isDraggingLocal) {
       document.addEventListener('mousemove', handleMouseMove)
       document.addEventListener('mouseup', handleMouseUp)
+      document.body.style.cursor = 'grabbing'
+      document.body.style.userSelect = 'none'
     } else {
       document.removeEventListener('mousemove', handleMouseMove)
       document.removeEventListener('mouseup', handleMouseUp)
+      document.body.style.cursor = ''
+      document.body.style.userSelect = ''
     }
 
     return () => {
       document.removeEventListener('mousemove', handleMouseMove)
       document.removeEventListener('mouseup', handleMouseUp)
+      document.body.style.cursor = ''
+      document.body.style.userSelect = ''
     }
   }, [isDraggingLocal, dragOffset])
 
   if (!isEditing) {
     return (
-      <div style={{ position: 'relative' }}>
-        <Card
-          id={id}
-          title={title}
-          desc={desc}
-          icon={icon}
-          color={color}
-          href={href}
-          onTitleChange={onTitleChange}
-          onDescChange={onDescChange}
-          {...props}
-        />
-      </div>
+      <Card
+        id={id}
+        title={title}
+        desc={desc}
+        icon={icon}
+        color={color}
+        href={href}
+        onTitleChange={onTitleChange}
+        onDescChange={onDescChange}
+      />
     )
   }
 
@@ -96,10 +109,11 @@ export default function DraggableCard({
         transition: isDraggingLocal ? 'none' : 'transform 0.2s ease, box-shadow 0.2s ease',
         boxShadow: isDraggingLocal 
           ? '0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2)' 
-          : '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
+          : '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+        width: '300px'
       }}
       onMouseDown={handleMouseDown}
-      className="draggable-card"
+      className="draggable-card will-change-transform"
     >
       <Card
         id={id}
@@ -110,10 +124,12 @@ export default function DraggableCard({
         href={href}
         onTitleChange={onTitleChange}
         onDescChange={onDescChange}
-        {...props}
       />
       {isEditing && (
-        <div className="absolute -top-2 -right-2 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center cursor-move">
+        <div 
+          className="absolute -top-2 -right-2 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center cursor-move drag-handle"
+          onMouseDown={handleMouseDown}
+        >
           <i className="fa-solid fa-grip-vertical text-white text-xs"></i>
         </div>
       )}
