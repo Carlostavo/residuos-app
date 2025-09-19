@@ -101,14 +101,14 @@ export default function Header() {
           {session && (
             <button
               onClick={() => setIsEditing(!isEditing)}
-              className={`px-4 py-2 rounded-full font-medium transition-colors ${
+              className={`px-4 py-2 rounded-full font-medium transition-colors flex items-center ${
                 isEditing 
                   ? 'bg-yellow-500 text-white hover:bg-yellow-600' 
                   : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
               }`}
             >
               <i className={`fa-solid ${isEditing ? 'fa-floppy-disk' : 'fa-pen'} mr-2`}></i>
-              {isEditing ? 'Guardar' : 'Editar'}
+              {isEditing ? 'Guardar Cambios' : 'Editar Página'}
             </button>
           )}
 
@@ -226,9 +226,9 @@ export default function Header() {
 
       {/* Indicador de modo edición */}
       {isEditing && (
-        <div className="fixed top-16 left-1/2 transform -translate-x-1/2 bg-yellow-500 text-white px-4 py-2 rounded-full shadow-lg z-30">
+        <div className="fixed top-16 left-1/2 transform -translate-x-1/2 bg-yellow-500 text-white px-4 py-2 rounded-full shadow-lg z-30 flex items-center">
           <i className="fa-solid fa-pen mr-2"></i>
-          Modo edición activado
+          Modo edición activado - Puedes arrastrar elementos y editar textos
         </div>
       )}
     </>
