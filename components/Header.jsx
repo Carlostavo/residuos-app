@@ -16,7 +16,8 @@ export default function Header() {
   const [loginLoading, setLoginLoading] = useState(false)
   const [selectedElement, setSelectedElement] = useState(null)
   const [editorContent, setEditorContent] = useState('')
-  const [showEditorPanel, setShowEditorPanel] = useState(false)
+  const [elementStyle, setElementStyle] = useState({})
+  const [linkUrl, setLinkUrl] = useState('')
   const dragInfo = useRef({ isDragging: false, element: null, startX: 0, startY: 0, startLeft: 0, startTop: 0 })
 
   useEffect(() => {
@@ -82,7 +83,6 @@ export default function Header() {
   const disableCanvasEditor = () => {
     document.body.classList.remove('canvas-edit-mode')
     cleanupCanvasInteractions()
-    setShowEditorPanel(false)
     setSelectedElement(null)
   }
 
@@ -107,10 +107,6 @@ export default function Header() {
     if (element) {
       selectElement(element)
       e.stopPropagation()
-    } else if (e.target.closest('.content-canvas') && !e.target.closest('.canvas-element')) {
-      // Click en el canvas vacío - deseleccionar
-      setSelectedElement(null)
-      setShowEditorPanel(false)
     }
   }
 
@@ -118,9 +114,8 @@ export default function Header() {
     if (!isEditing) return
     
     const element = e.target.closest('.canvas-element')
-    if (element && e.button === 0) { // Solo botón izquierdo
-      // No iniciar drag si se hace clic en un enlace o botón
-      if (e.target.closest('a, button')) return
+    if (element && e.button === 0) {
+      if (e.target.closest('a, button, input, textarea')) return
       
       dragInfo.current = {
         isDragging: true,
@@ -146,7 +141,6 @@ export default function Header() {
     const newLeft = dragInfo.current.startLeft + dx
     const newTop = dragInfo.current.startTop + dy
     
-    // Aplicar movimiento con precisión
     dragInfo.current.element.style.left = `${newLeft}px`
     dragInfo.current.element.style.top = `${newTop}px`
   }
@@ -156,7 +150,6 @@ export default function Header() {
       dragInfo.current.element.classList.remove('dragging')
       document.body.style.cursor = 'default'
       
-      // Guardar posición
       saveElementPosition(dragInfo.current.element.id, {
         left: dragInfo.current.element.style.left,
         top: dragInfo.current.element.style.top
@@ -167,37 +160,92 @@ export default function Header() {
   }
 
   const selectElement = (element) => {
-    // Deseleccionar elemento actual
     document.querySelectorAll('.canvas-element').forEach(el => {
       el.classList.remove('selected')
     })
     
-    // Seleccionar nuevo elemento
     element.classList.add('selected')
     setSelectedElement(element)
     setEditorContent(element.textContent || element.innerHTML)
-    setShowEditorPanel(true)
+    
+    // Capturar estilos actuales
+    const style = window.getComputedStyle(element)
+    setElementStyle({
+      fontSize: style.fontSize,
+      color: style.color,
+      fontWeight: style.fontWeight,
+      textAlign: style.textAlign,
+      backgroundColor: style.backgroundColor
+    })
+    
+    // Verificar si tiene enlace
+    const link = element.querySelector('a')
+    setLinkUrl(link ? link.href : '')
   }
 
-  const saveElementContent = () => {
+  const applyElementContent = () => {
     if (selectedElement) {
       selectedElement.innerHTML = editorContent
-      saveElementData(selectedElement.id, {
-        content: editorContent,
-        position: {
-          left: selectedElement.style.left,
-          top: selectedElement.style.top
-        }
-      })
+      saveElementData()
     }
   }
 
-  const saveElementData = (id, data) => {
+  const applyElementStyle = (property, value) => {
+    if (selectedElement) {
+      selectedElement.style[property] = value
+      setElementStyle(prev => ({ ...prev, [property]: value }))
+      saveElementData()
+    }
+  }
+
+  const applyLink = () => {
+    if (selectedElement && linkUrl) {
+      // Si ya tiene un enlace, actualizarlo
+      let link = selectedElement.querySelector('a')
+      if (link) {
+        link.href = linkUrl
+      } else {
+        // Crear nuevo enlace
+        const content = selectedElement.innerHTML
+        selectedElement.innerHTML = `<a href="${linkUrl}" style="color: inherit; text-decoration: inherit;">${content}</a>`
+      }
+      saveElementData()
+    }
+  }
+
+  const removeLink = () => {
+    if (selectedElement) {
+      const link = selectedElement.querySelector('a')
+      if (link) {
+        selectedElement.innerHTML = link.innerHTML
+      }
+      setLinkUrl('')
+      saveElementData()
+    }
+  }
+
+  const saveElementData = () => {
+    if (!selectedElement) return
+    
     const page = pathname
     const savedData = localStorage.getItem(`canvas-data-${page}`)
     let elementsData = savedData ? JSON.parse(savedData) : {}
     
-    elementsData[id] = data
+    elementsData[selectedElement.id] = {
+      content: selectedElement.innerHTML,
+      position: {
+        left: selectedElement.style.left,
+        top: selectedElement.style.top
+      },
+      styles: {
+        fontSize: selectedElement.style.fontSize,
+        color: selectedElement.style.color,
+        fontWeight: selectedElement.style.fontWeight,
+        textAlign: selectedElement.style.textAlign,
+        backgroundColor: selectedElement.style.backgroundColor
+      }
+    }
+    
     localStorage.setItem(`canvas-data-${page}`, JSON.stringify(elementsData))
   }
 
@@ -230,6 +278,9 @@ export default function Header() {
             element.style.left = elementsData[id].position.left
             element.style.top = elementsData[id].position.top
           }
+          if (elementsData[id].styles) {
+            Object.assign(element.style, elementsData[id].styles)
+          }
         }
       })
     }
@@ -237,11 +288,19 @@ export default function Header() {
 
   const saveAllChanges = () => {
     document.querySelectorAll('.canvas-element').forEach(element => {
+      const style = window.getComputedStyle(element)
       saveElementData(element.id, {
         content: element.innerHTML,
         position: {
           left: element.style.left,
           top: element.style.top
+        },
+        styles: {
+          fontSize: element.style.fontSize,
+          color: element.style.color,
+          fontWeight: element.style.fontWeight,
+          textAlign: element.style.textAlign,
+          backgroundColor: element.style.backgroundColor
         }
       })
     })
@@ -267,21 +326,60 @@ export default function Header() {
     newElement.style.top = '100px'
     newElement.style.minWidth = '200px'
     newElement.style.minHeight = '40px'
+    newElement.style.padding = '12px'
+    newElement.style.backgroundColor = '#ffffff'
+    newElement.style.borderRadius = '8px'
+    newElement.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)'
     
     document.querySelector('.content-canvas').appendChild(newElement)
     selectElement(newElement)
   }
 
-  const updateElementStyle = (property, value) => {
+  const addNewCardElement = () => {
+    const newId = `card-element-${Date.now()}`
+    const newElement = document.createElement('div')
+    newElement.id = newId
+    newElement.className = 'canvas-element'
+    newElement.innerHTML = `
+      <div class="bg-white rounded-2xl shadow-md p-6">
+        <h3 class="text-lg font-semibold">Nueva Tarjeta</h3>
+        <p class="text-gray-600 mt-2">Descripción de la tarjeta</p>
+      </div>
+    `
+    newElement.style.position = 'absolute'
+    newElement.style.left = '150px'
+    newElement.style.top = '150px'
+    newElement.style.width = '300px'
+    
+    document.querySelector('.content-canvas').appendChild(newElement)
+    selectElement(newElement)
+  }
+
+  const duplicateElement = () => {
     if (selectedElement) {
-      selectedElement.style[property] = value
-      saveElementData(selectedElement.id, {
-        content: selectedElement.innerHTML,
-        position: {
-          left: selectedElement.style.left,
-          top: selectedElement.style.top
-        }
-      })
+      const newId = `${selectedElement.id}-copy-${Date.now()}`
+      const newElement = selectedElement.cloneNode(true)
+      newElement.id = newId
+      newElement.style.left = `${parseInt(selectedElement.style.left || 0) + 20}px`
+      newElement.style.top = `${parseInt(selectedElement.style.top || 0) + 20}px`
+      
+      document.querySelector('.content-canvas').appendChild(newElement)
+      selectElement(newElement)
+    }
+  }
+
+  const deleteElement = () => {
+    if (selectedElement && confirm('¿Eliminar este elemento?')) {
+      const page = pathname
+      const savedData = localStorage.getItem(`canvas-data-${page}`)
+      if (savedData) {
+        const elementsData = JSON.parse(savedData)
+        delete elementsData[selectedElement.id]
+        localStorage.setItem(`canvas-data-${page}`, JSON.stringify(elementsData))
+      }
+      
+      selectedElement.remove()
+      setSelectedElement(null)
     }
   }
 
@@ -321,13 +419,6 @@ export default function Header() {
                   {isEditing && (
                     <>
                       <button
-                        onClick={addNewTextElement}
-                        className="ml-2 px-3 py-2 bg-purple-600 text-white rounded-full hover:bg-purple-700 text-sm"
-                      >
-                        <i className="fa-solid fa-plus mr-1"></i>
-                        Nuevo Texto
-                      </button>
-                      <button
                         onClick={saveAllChanges}
                         className="ml-2 px-3 py-2 bg-green-600 text-white rounded-full hover:bg-green-700 text-sm"
                       >
@@ -363,6 +454,218 @@ export default function Header() {
           )}
         </nav>
       </header>
+
+      {/* Barra de herramientas fija */}
+      {isEditing && (
+        <div className="fixed top-16 left-0 right-0 bg-gray-800 text-white shadow-lg z-40 px-4 py-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <span className="font-medium">Editor Activo</span>
+              
+              <div className="flex gap-2">
+                <button
+                  onClick={addNewTextElement}
+                  className="px-3 py-1 bg-blue-600 rounded hover:bg-blue-700 text-sm flex items-center"
+                  title="Agregar texto"
+                >
+                  <i className="fa-solid fa-font mr-1"></i>
+                  Texto
+                </button>
+                
+                <button
+                  onClick={addNewCardElement}
+                  className="px-3 py-1 bg-purple-600 rounded hover:bg-purple-700 text-sm flex items-center"
+                  title="Agregar tarjeta"
+                >
+                  <i className="fa-solid fa-square mr-1"></i>
+                  Tarjeta
+                </button>
+                
+                <button
+                  onClick={duplicateElement}
+                  className="px-3 py-1 bg-gray-600 rounded hover:bg-gray-700 text-sm flex items-center"
+                  title="Duplicar elemento"
+                  disabled={!selectedElement}
+                >
+                  <i className="fa-solid fa-copy mr-1"></i>
+                  Duplicar
+                </button>
+                
+                <button
+                  onClick={deleteElement}
+                  className="px-3 py-1 bg-red-600 rounded hover:bg-red-700 text-sm flex items-center"
+                  title="Eliminar elemento"
+                  disabled={!selectedElement}
+                >
+                  <i className="fa-solid fa-trash mr-1"></i>
+                  Eliminar
+                </button>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-4">
+              <span className="text-sm text-gray-300">
+                {selectedElement ? `Seleccionado: ${selectedElement.id}` : 'Haz clic en un elemento para editarlo'}
+              </span>
+              
+              <div className="flex gap-2">
+                <button
+                  onClick={saveAllChanges}
+                  className="px-3 py-1 bg-green-600 rounded hover:bg-green-700 text-sm flex items-center"
+                  title="Guardar todo"
+                >
+                  <i className="fa-solid fa-save mr-1"></i>
+                  Guardar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Panel Editor Lateral */}
+      {isEditing && selectedElement && (
+        <div className="fixed right-4 top-24 bg-white rounded-2xl shadow-xl z-50 w-80 border border-gray-200">
+          <div className="p-4 border-b border-gray-200">
+            <h3 className="font-semibold text-gray-800">Editor de Elemento</h3>
+            <button 
+              onClick={() => setSelectedElement(null)}
+              className="absolute top-3 right-3 text-gray-400 hover:text-gray-600"
+            >
+              <i className="fa-solid fa-xmark"></i>
+            </button>
+          </div>
+          
+          <div className="p-4 max-h-96 overflow-y-auto">
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">Contenido:</label>
+              <textarea
+                value={editorContent}
+                onChange={(e) => setEditorContent(e.target.value)}
+                onBlur={applyElementContent}
+                className="w-full h-24 p-3 border rounded-lg resize-none focus:ring-2 focus:ring-green-500"
+                placeholder="Escribe tu contenido aquí..."
+              />
+            </div>
+            
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">Enlace:</label>
+              <div className="flex gap-2">
+                <input
+                  type="url"
+                  value={linkUrl}
+                  onChange={(e) => setLinkUrl(e.target.value)}
+                  onBlur={applyLink}
+                  className="flex-1 p-2 border rounded"
+                  placeholder="https://..."
+                />
+                <button
+                  onClick={removeLink}
+                  className="px-3 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+                  title="Quitar enlace"
+                >
+                  <i className="fa-solid fa-unlink"></i>
+                </button>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4 mb-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Posición X:</label>
+                <input
+                  type="number"
+                  value={parseInt(selectedElement.style.left || 0)}
+                  onChange={(e) => {
+                    selectedElement.style.left = `${e.target.value}px`
+                    saveElementData()
+                  }}
+                  className="w-full p-2 border rounded"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Posición Y:</label>
+                <input
+                  type="number"
+                  value={parseInt(selectedElement.style.top || 0)}
+                  onChange={(e) => {
+                    selectedElement.style.top = `${e.target.value}px`
+                    saveElementData()
+                  }}
+                  className="w-full p-2 border rounded"
+                />
+              </div>
+            </div>
+            
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">Tamaño de texto:</label>
+              <select 
+                onChange={(e) => applyElementStyle('fontSize', e.target.value)}
+                value={elementStyle.fontSize || '16px'}
+                className="w-full p-2 border rounded"
+              >
+                <option value="12px">Pequeño (12px)</option>
+                <option value="14px">Normal (14px)</option>
+                <option value="16px">Mediano (16px)</option>
+                <option value="18px">Largo (18px)</option>
+                <option value="24px">Grande (24px)</option>
+                <option value="32px">Título (32px)</option>
+              </select>
+            </div>
+            
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">Color de texto:</label>
+              <input
+                type="color"
+                onChange={(e) => applyElementStyle('color', e.target.value)}
+                value={elementStyle.color || '#000000'}
+                className="w-full h-10 border rounded"
+              />
+            </div>
+            
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">Alineación:</label>
+              <div className="flex gap-2">
+                {['left', 'center', 'right', 'justify'].map(align => (
+                  <button
+                    key={align}
+                    onClick={() => applyElementStyle('textAlign', align)}
+                    className={`p-2 border rounded ${
+                      elementStyle.textAlign === align ? 'bg-blue-100 border-blue-500' : 'border-gray-300'
+                    }`}
+                    title={`Alinear ${align}`}
+                  >
+                    <i className={`fa-solid fa-align-${align}`}></i>
+                  </button>
+                ))}
+              </div>
+            </div>
+            
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">Estilo de texto:</label>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => applyElementStyle('fontWeight', elementStyle.fontWeight === 'bold' ? 'normal' : 'bold')}
+                  className={`p-2 border rounded ${
+                    elementStyle.fontWeight === 'bold' ? 'bg-blue-100 border-blue-500' : 'border-gray-300'
+                  }`}
+                  title="Negrita"
+                >
+                  <i className="fa-solid fa-bold"></i>
+                </button>
+                <button
+                  onClick={() => applyElementStyle('fontStyle', elementStyle.fontStyle === 'italic' ? 'normal' : 'italic')}
+                  className={`p-2 border rounded ${
+                    elementStyle.fontStyle === 'italic' ? 'bg-blue-100 border-blue-500' : 'border-gray-300'
+                  }`}
+                  title="Cursiva"
+                >
+                  <i className="fa-solid fa-italic"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Modal de Login */}
       {showLoginModal && (
@@ -425,117 +728,6 @@ export default function Header() {
               </button>
             </form>
           </div>
-        </div>
-      )}
-
-      {/* Panel Editor Lateral (tipo Canva) */}
-      {isEditing && showEditorPanel && selectedElement && (
-        <div className="fixed left-4 top-20 bg-white rounded-2xl shadow-xl z-50 w-80 border border-gray-200">
-          <div className="p-4 border-b border-gray-200">
-            <h3 className="font-semibold text-gray-800">Editor de Elemento</h3>
-            <button 
-              onClick={() => setShowEditorPanel(false)}
-              className="absolute top-3 right-3 text-gray-400 hover:text-gray-600"
-            >
-              <i className="fa-solid fa-xmark"></i>
-            </button>
-          </div>
-          
-          <div className="p-4 max-h-96 overflow-y-auto">
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">Contenido:</label>
-              <textarea
-                value={editorContent}
-                onChange={(e) => setEditorContent(e.target.value)}
-                className="w-full h-24 p-3 border rounded-lg resize-none focus:ring-2 focus:ring-green-500"
-                placeholder="Escribe tu contenido aquí..."
-              />
-            </div>
-            
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">Posición:</label>
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <label className="text-xs text-gray-600">X (px):</label>
-                  <input
-                    type="number"
-                    value={parseInt(selectedElement.style.left || 0)}
-                    onChange={(e) => updateElementStyle('left', `${e.target.value}px`)}
-                    className="w-full p-2 border rounded"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs text-gray-600">Y (px):</label>
-                  <input
-                    type="number"
-                    value={parseInt(selectedElement.style.top || 0)}
-                    onChange={(e) => updateElementStyle('top', `${e.target.value}px`)}
-                    className="w-full p-2 border rounded"
-                  />
-                </div>
-              </div>
-            </div>
-            
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">Tamaño de texto:</label>
-              <select 
-                onChange={(e) => updateElementStyle('fontSize', e.target.value)}
-                className="w-full p-2 border rounded"
-                value={selectedElement.style.fontSize || '16px'}
-              >
-                <option value="12px">Pequeño (12px)</option>
-                <option value="14px">Normal (14px)</option>
-                <option value="16px">Mediano (16px)</option>
-                <option value="20px">Grande (20px)</option>
-                <option value="24px">Muy Grande (24px)</option>
-                <option value="32px">Título (32px)</option>
-              </select>
-            </div>
-            
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">Color de texto:</label>
-              <input
-                type="color"
-                onChange={(e) => updateElementStyle('color', e.target.value)}
-                value={selectedElement.style.color || '#000000'}
-                className="w-full h-10 border rounded"
-              />
-            </div>
-            
-            <div className="flex gap-2">
-              <button
-                onClick={() => setShowEditorPanel(false)}
-                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
-              >
-                Cerrar
-              </button>
-              <button
-                onClick={saveElementContent}
-                className="flex-1 px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
-              >
-                Aplicar
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Toolbar de Canvas */}
-      {isEditing && (
-        <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-4 py-2 rounded-lg shadow-lg z-40 flex gap-2">
-          <span className="flex items-center px-2">
-            <i className="fa-solid fa-mouse-pointer mr-2"></i>
-            Modo Edición Activo
-          </span>
-          <div className="h-4 w-px bg-gray-600 mx-2"></div>
-          <span className="text-sm flex items-center text-gray-300">
-            <i className="fa-solid fa-arrows-up-down-left-right mr-1"></i>
-            Arrastra para mover
-          </span>
-          <span className="text-sm flex items-center text-gray-300 ml-2">
-            <i className="fa-solid fa-pen mr-1"></i>
-            Haz clic para editar
-          </span>
         </div>
       )}
     </>
