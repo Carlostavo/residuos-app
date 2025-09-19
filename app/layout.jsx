@@ -1,11 +1,16 @@
 import "./globals.css"
 import Header from "../components/Header"
 import EditorPanel from "../components/EditorPanel"
-import { EditProvider } from "../lib/EditContext"
+import { EditProvider, useEdit } from "../lib/EditContext"
 
-export const metadata = {
-  title: "Gestión RS",
-  description: "Plataforma de seguimiento",
+function MainWrapper({ children }) {
+  const { isEditing } = useEdit()
+
+  return (
+    <main className={`transition-all ${isEditing ? "ml-64 bg-grid" : ""}`}>
+      {children}
+    </main>
+  )
 }
 
 export default function RootLayout({ children }) {
@@ -15,7 +20,7 @@ export default function RootLayout({ children }) {
         <EditProvider>
           <Header />
           <EditorPanel />
-          <main className="ml-64">{children}</main>
+          <MainWrapper>{children}</MainWrapper>
         </EditProvider>
       </body>
     </html>
