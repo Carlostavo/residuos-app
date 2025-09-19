@@ -38,13 +38,6 @@ export default function Header() {
     window.location.reload()
   }
 
-  const handleToggleEdit = () => {
-    // Dispatch a global event so the current page can react and enter edit mode
-    if (typeof window !== 'undefined') {
-      window.dispatchEvent(new CustomEvent('toggle-edit'))
-    }
-  }
-
   return (
     <>
       <header className="topbar flex justify-between items-center p-4 bg-white shadow-md sticky top-0 z-40">
@@ -52,7 +45,6 @@ export default function Header() {
           <i className="fa-solid fa-recycle"></i>
           <span>Gestión RS</span>
         </div>
-
         <nav className="flex gap-3 items-center">
           <Link href="/inicio">Inicio</Link>
           <Link href="/indicadores">Indicadores</Link>
@@ -66,29 +58,12 @@ export default function Header() {
               Cargando...
             </div>
           ) : session ? (
-            <>
-              {/* Botón editar que dispara evento global */}
-              <button
-                onClick={handleToggleEdit}
-                className="p-2 rounded-full bg-yellow-500 text-white hover:bg-yellow-600"
-                title="Editar contenido"
-              >
-                <i className="fa-solid fa-pen"></i>
-              </button>
-
-              {/* Nombre del usuario */}
-              <span className="ml-2 text-gray-700 font-medium">
-                {session.user.user_metadata?.full_name || session.user.email}
-              </span>
-
-              {/* Botón cerrar sesión */}
-              <button
-                onClick={handleLogout}
-                className="ml-4 px-4 py-2 bg-red-600 text-white rounded-full hover:bg-red-700"
-              >
-                Cerrar sesión
-              </button>
-            </>
+            <button
+              onClick={handleLogout}
+              className="ml-4 px-4 py-2 bg-red-600 text-white rounded-full hover:bg-red-700"
+            >
+              Cerrar sesión
+            </button>
           ) : (
             <button
               onClick={() => setShowLoginModal(true)}
