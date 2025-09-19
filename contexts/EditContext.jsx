@@ -7,7 +7,7 @@ const EditContext = createContext()
 export function EditProvider({ children }) {
   const [isEditing, setIsEditing] = useState(false)
   const [draggedElement, setDraggedElement] = useState(null)
-  const [dragOverElement, setDragOverElement] = useState(null)
+  const [isDragging, setIsDragging] = useState(false)
   
   return (
     <EditContext.Provider value={{ 
@@ -15,8 +15,8 @@ export function EditProvider({ children }) {
       setIsEditing,
       draggedElement,
       setDraggedElement,
-      dragOverElement,
-      setDragOverElement
+      isDragging,
+      setIsDragging
     }}>
       {children}
     </EditContext.Provider>
