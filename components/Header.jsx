@@ -58,12 +58,15 @@ export default function Header() {
               Cargando...
             </div>
           ) : session ? (
-            <button
-              onClick={handleLogout}
-              className="ml-4 px-4 py-2 bg-red-600 text-white rounded-full hover:bg-red-700"
-            >
-              Cerrar sesión
-            </button>
+            <div className="flex items-center gap-3">
+              <span className="text-sm text-gray-700">{session.user.email}</span>
+              <button
+                onClick={handleLogout}
+                className="px-4 py-2 bg-red-600 text-white rounded-full hover:bg-red-700"
+              >
+                Cerrar sesión
+              </button>
+            </div>
           ) : (
             <button
               onClick={() => setShowLoginModal(true)}
