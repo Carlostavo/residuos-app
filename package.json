@@ -13,7 +13,8 @@
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "@supabase/supabase-js": "^2.30.0",
-    "react-rnd": "^10.4.0"
+    "react-rnd": "^10.4.0",
+    "react-quill": "^2.0.0"  // ← Añade esta línea
   },
   "devDependencies": {
     "tailwindcss": "^3.4.0",
