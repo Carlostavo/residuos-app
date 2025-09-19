@@ -1,27 +1,34 @@
-import './globals.css'
-import Header from '../components/Header'
+import "./globals.css";
+import Header from "@/components/Header";
+import { EditProvider, useEdit } from "@/lib/EditContext";
+import EditorPanel from "@/components/EditorPanel";
 
-export const metadata = {
-  title: 'Gestión de Residuos Sólidos',
-  description: 'Plataforma de gestión ambiental',
+function LayoutWrapper({ children }) {
+  const { isEditing } = useEdit();
+
+  return (
+    <div className="min-h-screen flex flex-col">
+      <Header />
+      <div className="flex flex-1 relative">
+        {isEditing && <EditorPanel />}
+        <main
+          className={`flex-1 p-6 transition-all duration-300 ${isEditing ? "ml-64 bg-[url('/grid-pattern.png')]" : ""}`}
+        >
+          {children}
+        </main>
+      </div>
+    </div>
+  );
 }
 
 export default function RootLayout({ children }) {
   return (
     <html lang="es">
-      <head>
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-      </head>
-      <body className="bg-gray-50 min-h-screen flex flex-col">
-        <Header />
-        <div className="flex-1 flex">
-          <div className="flex-1 overflow-auto">
-            <main className="p-6 max-w-7xl mx-auto w-full">
-              {children}
-            </main>
-          </div>
-        </div>
+      <body>
+        <EditProvider>
+          <LayoutWrapper>{children}</LayoutWrapper>
+        </EditProvider>
       </body>
     </html>
-  )
+  );
 }
