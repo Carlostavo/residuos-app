@@ -4,10 +4,13 @@ import { usePathname } from 'next/navigation'
 import { useAuth } from '../lib/useAuth'
 import { supabase } from '../lib/supabaseClient'
 import { useState } from 'react'
+import { useEdit } from '../lib/EditContext'   // 👈 añadido
 
 export default function Header() {
   const pathname = usePathname()
   const { session, role, loading } = useAuth()
+  const { isEditing, setIsEditing } = useEdit()   // 👈 estado global de edición
+
   const [showLoginModal, setShowLoginModal] = useState(false)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -38,6 +41,8 @@ export default function Header() {
     window.location.reload()
   }
 
+  const isAdminOrTech = role === 'admin' || role === 'tecnico'   // 👈 validación del rol
+
   return (
     <>
       <header className="topbar flex justify-between items-center p-4 bg-white shadow-md sticky top-0 z-40">
@@ -58,12 +63,22 @@ export default function Header() {
               Cargando...
             </div>
           ) : session ? (
-            <button
-              onClick={handleLogout}
-              className="ml-4 px-4 py-2 bg-red-600 text-white rounded-full hover:bg-red-700"
-            >
-              Cerrar sesión
-            </button>
+            <>
+              {isAdminOrTech && (
+                <button
+                  onClick={() => setIsEditing(!isEditing)}
+                  className="ml-4 px-4 py-2 bg-yellow-500 text-white rounded-full hover:bg-yellow-600"
+                >
+                  {isEditing ? 'Salir edición' : 'Editar'}
+                </button>
+              )}
+              <button
+                onClick={handleLogout}
+                className="ml-4 px-4 py-2 bg-red-600 text-white rounded-full hover:bg-red-700"
+              >
+                Cerrar sesión
+              </button>
+            </>
           ) : (
             <button
               onClick={() => setShowLoginModal(true)}
