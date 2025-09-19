@@ -58,19 +58,7 @@ export default function InicioPage() {
             </ul>
           </div>
           
-          <div className="bg-white rounded-2xl shadow-md p-6">
-            <h2 className="text-2xl font-bold text-green-700 mb-4">Últimas actualizaciones</h2>
-            <div className="space-y-4">
-              <div className="border-l-4 border-blue-500 pl-4">
-                <h3 className="font-semibold">Nuevo dashboard de métricas</h3>
-                <p className="text-sm text-gray-600">Ahora con más gráficos interactivos</p>
-              </div>
-              <div className="border-l-4 border-green-500 pl-4">
-                <h3 className="font-semibold">Exportación de reportes mejorada</h3>
-                <p className="text-sm text-gray-600">Formatos PDF, Excel y CSV disponibles</p>
-              </div>
-            </div>
-          </div>
+          
         </div>
       </div>
     </div>
