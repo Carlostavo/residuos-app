@@ -1,4 +1,4 @@
-// components/Editable.jsx
+// components/Editable.jsx (mejorado para evitar redirecciones)
 'use client'
 import { useState } from 'react'
 import { useEdit } from '../contexts/EditContext'
@@ -16,7 +16,9 @@ export default function Editable({
   const [currentValue, setCurrentValue] = useState(value)
 
   const handleSave = () => {
-    onChange(currentValue)
+    if (currentValue.trim() !== '') {
+      onChange(currentValue)
+    }
     setIsEditingLocal(false)
   }
 
@@ -26,9 +28,9 @@ export default function Editable({
   }
 
   const handleClick = (e) => {
-    // Prevenir la propagación del evento para evitar redirecciones
-    e.stopPropagation()
     if (isEditing) {
+      e.stopPropagation()
+      e.preventDefault()
       setIsEditingLocal(true)
     }
   }
@@ -40,7 +42,7 @@ export default function Editable({
           type="text"
           value={currentValue}
           onChange={(e) => setCurrentValue(e.target.value)}
-          className={`border border-gray-300 rounded px-2 py-1 ${className}`}
+          className={`border border-gray-300 rounded px-2 py-1 w-full ${className}`}
           autoFocus
           onBlur={handleSave}
           onKeyDown={(e) => {
@@ -56,7 +58,7 @@ export default function Editable({
   return (
     <div className="relative group" onClick={handleClick}>
       <Tag 
-        className={`${className} ${isEditing ? 'cursor-text border-dashed border-transparent hover:border-gray-300' : ''}`}
+        className={`${className} ${isEditing ? 'cursor-text hover:bg-gray-50 rounded px-1' : ''}`}
       >
         {value || placeholder}
       </Tag>
@@ -64,6 +66,7 @@ export default function Editable({
         <button
           onClick={(e) => {
             e.stopPropagation()
+            e.preventDefault()
             setIsEditingLocal(true)
           }}
           className="absolute -right-6 top-0 opacity-0 group-hover:opacity-100 transition-opacity"
