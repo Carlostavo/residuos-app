@@ -1,3 +1,4 @@
+// app/globals.css
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -22,7 +23,8 @@
 .card-hover {
   @apply transition-all duration-300 hover:shadow-xl hover:-translate-y-1;
 }
-/* Agregar al archivo globals.css */
+
+/* Estilos para el modo de edición */
 .dragging {
   opacity: 0.5;
   transform: scale(0.95);
@@ -40,4 +42,66 @@
 
 .drag-handle:hover {
   opacity: 1;
+}
+
+/* Estilos para elementos editables */
+.editable:hover {
+  outline: 2px dashed #e5e7eb;
+  outline-offset: 2px;
+  cursor: text;
+}
+
+.editing {
+  outline: 2px solid #3B82F6;
+  outline-offset: 2px;
+}
+
+/* Smooth transitions for drag and drop */
+.drag-transition {
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+/* Estilos para el indicador de posición de arrastre */
+.drop-indicator {
+  border: 2px dashed #10B981;
+  background-color: rgba(16, 185, 129, 0.1);
+}
+
+/* Mejoras de usabilidad para el modo edición */
+.edit-mode-active .drag-handle {
+  opacity: 0.7;
+}
+
+.edit-mode-active .drag-handle:hover {
+  opacity: 1;
+}
+
+/* Efecto de elevación para elementos arrastrados */
+.dragging-element {
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  z-index: 50;
+}
+
+/* Animación suave para cambios de layout */
+.layout-transition {
+  transition: all 0.3s ease;
+}
+
+/* Personalización de la barra de desplazamiento para el modo edición */
+.edit-scrollbar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.edit-scrollbar::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.edit-scrollbar::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+.edit-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
 }
