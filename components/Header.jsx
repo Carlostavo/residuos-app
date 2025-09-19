@@ -12,7 +12,6 @@ import { useState } from 'react'
 
 export default function Header() {
   const [editorOpen, setEditorOpen] = useState(false);
-() {
   const pathname = usePathname()
   const { session, role, loading } = useAuth()
   const [showLoginModal, setShowLoginModal] = useState(false)
