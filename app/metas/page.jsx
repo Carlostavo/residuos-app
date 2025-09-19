@@ -1,20 +1,97 @@
+// app/metas/page.jsx
 'use client'
 import Card from '../../components/Card'
+import Editable from '../../components/Editable'
+import { useEdit } from '../../contexts/EditContext'
+import { useLocalStorage } from '../../hooks/useLocalStorage'
 
 export default function MetasPage() {
-  const cards = [
-    { title: "Metas de Reducción", desc: "Objetivos para reducir el volumen de residuos.", icon: "fa-minimize", color: "bg-green-600" },
-    { title: "Metas de Reciclaje", desc: "Aumentar la tasa de reciclaje.", icon: "fa-trash-arrow-up", color: "bg-blue-500" },
-  ]
+  const { isEditing } = useEdit()
+  const [pageTitle, setPageTitle] = useLocalStorage('metasTitle', 'Gestión de Metas de Sostenibilidad')
+  const [pageDescription, setPageDescription] = useLocalStorage('metasDescription', 'Define, monitorea y ajusta tus metas ambientales.')
+  
+  const [cards, setCards] = useLocalStorage('metasCards', [
+    { 
+      id: 1, 
+      title: "Metas de Reducción", 
+      desc: "Objetivos para reducir el volumen de residuos.", 
+      icon: "fa-minimize", 
+      color: "bg-green-600",
+      href: "/metas/reduccion"
+    },
+    { 
+      id: 2, 
+      title: "Metas de Reciclaje", 
+      desc: "Aumentar la tasa de reciclaje.", 
+      icon: "fa-trash-arrow-up", 
+      color: "bg-blue-500",
+      href: "/metas/reciclaje"
+    },
+  ])
+
+  const updateCardTitle = (id, newTitle) => {
+    setCards(cards.map(card => 
+      card.id === id ? { ...card, title: newTitle } : card
+    ))
+  }
+
+  const updateCardDesc = (id, newDesc) => {
+    setCards(cards.map(card => 
+      card.id === id ? { ...card, desc: newDesc } : card
+    ))
+  }
+
   return (
     <section className="space-y-6">
       <div className="hero text-center p-8 bg-green-50 rounded-lg shadow">
-        <h1 className="text-3xl font-bold text-green-700">Gestión de Metas de Sostenibilidad</h1>
-        <p className="text-gray-600 mt-2">Define, monitorea y ajusta tus metas ambientales.</p>
+        {isEditing ? (
+          <>
+            <Editable
+              tag="h1"
+              value={pageTitle}
+              onChange={setPageTitle}
+              className="text-3xl font-bold text-green-700"
+              placeholder="Título de la página"
+            />
+            <Editable
+              tag="p"
+              value={pageDescription}
+              onChange={setPageDescription}
+              className="text-gray-600 mt-2"
+              placeholder="Descripción de la página"
+            />
+          </>
+        ) : (
+          <>
+            <h1 className="text-3xl font-bold text-green-700">{pageTitle}</h1>
+            <p className="text-gray-600 mt-2">{pageDescription}</p>
+          </>
+        )}
       </div>
+      
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {cards.map(c => <Card key={c.title} {...c} />)}
+        {cards.map(card => (
+          <Card 
+            key={card.id}
+            title={card.title}
+            desc={card.desc}
+            icon={card.icon}
+            color={card.color}
+            href={card.href}
+            onTitleChange={(newTitle) => updateCardTitle(card.id, newTitle)}
+            onDescChange={(newDesc) => updateCardDesc(card.id, newDesc)}
+          />
+        ))}
       </div>
+
+      {isEditing && (
+        <div className="fixed bottom-6 right-6 bg-white p-4 rounded-lg shadow-lg border">
+          <p className="text-sm text-gray-600">
+            <i className="fa-solid fa-pen mr-2"></i>
+            Modo edición activado. Haz clic en cualquier texto para editarlo.
+          </p>
+        </div>
+      )}
     </section>
   )
 }
