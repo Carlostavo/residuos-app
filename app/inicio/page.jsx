@@ -24,6 +24,9 @@ export default function InicioPage() {
             element.style.left = elementsData[id].position.left
             element.style.top = elementsData[id].position.top
           }
+          if (elementsData[id].styles) {
+            Object.assign(element.style, elementsData[id].styles)
+          }
         }
       })
     }
@@ -44,18 +47,22 @@ export default function InicioPage() {
         <div 
           id="hero-title" 
           className="canvas-element text-element"
-          style={{ position: 'absolute', left: '50px', top: '50px', fontSize: '32px', fontWeight: 'bold', color: '#166534' }}
+          style={{ position: 'absolute', left: '50px', top: '50px' }}
         >
-          Sistema de Gestión de Residuos Sólidos
+          <h1 className="text-4xl md:text-5xl font-bold text-green-800">
+            Sistema de Gestión de Residuos Sólidos
+          </h1>
         </div>
 
         <div 
           id="hero-description" 
           className="canvas-element text-element"
-          style={{ position: 'absolute', left: '50px', top: '120px', fontSize: '18px', color: '#374151', maxWidth: '600px' }}
+          style={{ position: 'absolute', left: '50px', top: '150px', maxWidth: '600px' }}
         >
-          La plataforma integral para monitorear indicadores, gestionar metas y generar reportes 
-          para una gestión ambiental eficiente y sostenible.
+          <p className="text-lg text-gray-700">
+            La plataforma integral para monitorear indicadores, gestionar metas y generar reportes 
+            para una gestión ambiental eficiente y sostenible.
+          </p>
         </div>
 
         {/* Tarjetas como elementos del canvas */}
@@ -64,7 +71,7 @@ export default function InicioPage() {
             key={c.title} 
             id={`card-${index}`}
             className="canvas-element"
-            style={{ position: 'absolute', left: `${50 + (index * 20)}px`, top: `${200 + (index * 20)}px` }}
+            style={{ position: 'absolute', left: `${50 + (index * 320)}px`, top: '250px' }}
           >
             <Card 
               title={c.title} 
