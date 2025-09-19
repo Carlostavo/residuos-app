@@ -59,7 +59,7 @@ export default function InicioPage() {
           </div>
           
           
-        </div>
+        
       </div>
     </div>
   )
