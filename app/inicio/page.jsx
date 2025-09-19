@@ -1,5 +1,9 @@
 'use client'
 import Card from '../../components/Card'
+import EditButton from '../../components/EditButton'
+import { useEdit } from '../../contexts/EditContext'
+import { useAuth } from '../../lib/useAuth'
+import { useDragDrop } from '../../hooks/useDragDrop'
 
 export default function InicioPage() {
   const cards = [
@@ -10,10 +14,33 @@ export default function InicioPage() {
     { title: "Formularios de Datos", desc: "Ingresa y gestiona datos en campo.", icon: "fa-file-alt", color: "bg-purple-600", href: "/formularios" },
   ]
 
+  const { isEditing } = useEdit()
+  const { session, role } = useAuth()
+  const { handleDragStart, handleDragOver, handleDrop } = useDragDrop()
+
   return (
-    <div className="canvas-container">
-      <div className="content-canvas">
-        <div className="hero-section text-center">
+    <div className={`canvas-container ${isEditing ? 'editing-mode' : ''}`}>
+      <div 
+        id="content-canvas" 
+        className="content-canvas relative min-h-screen"
+        onDragOver={isEditing ? handleDragOver : undefined}
+        onDrop={isEditing ? (e) => handleDrop(e, 'content-canvas') : undefined}
+      >
+        <EditButton />
+        
+        {isEditing && (
+          <div className="absolute top-4 right-4 bg-yellow-500 text-white px-3 py-1 rounded-full text-sm font-medium z-10">
+            Modo Edición
+          </div>
+        )}
+        
+        <div 
+          id="hero-section"
+          className="hero-section text-center"
+          draggable={isEditing}
+          onDragStart={isEditing ? (e) => handleDragStart(e, 'hero-section') : undefined}
+          data-draggable={isEditing}
+        >
           <h1 className="text-4xl md:text-5xl font-bold text-green-800 mb-4">
             Sistema de Gestión de Residuos Sólidos
           </h1>
@@ -23,7 +50,13 @@ export default function InicioPage() {
           </p>
         </div>
 
-        <div className="responsive-grid">
+        <div 
+          id="cards-grid"
+          className="responsive-grid"
+          draggable={isEditing}
+          onDragStart={isEditing ? (e) => handleDragStart(e, 'cards-grid') : undefined}
+          data-draggable={isEditing}
+        >
           {cards.map((c) => (
             <div key={c.title} className="h-full">
               <Card 
@@ -39,7 +72,13 @@ export default function InicioPage() {
         </div>
 
         {/* Sección adicional */}
-        <div className="mt-12 grid md:grid-cols-2 gap-8">
+        <div 
+          id="additional-section"
+          className="mt-12 grid md:grid-cols-2 gap-8"
+          draggable={isEditing}
+          onDragStart={isEditing ? (e) => handleDragStart(e, 'additional-section') : undefined}
+          data-draggable={isEditing}
+        >
           <div className="bg-white rounded-2xl shadow-md p-6">
             <h2 className="text-2xl font-bold text-green-700 mb-4">¿Por qué elegirnos?</h2>
             <ul className="space-y-3">
