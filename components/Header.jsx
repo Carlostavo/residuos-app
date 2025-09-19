@@ -1,4 +1,4 @@
-// components/Header.jsx - Actualizado
+// components/Header.jsx - Actualizado para testing
 'use client'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
@@ -9,7 +9,7 @@ import EditorModal from './EditorModal'
 
 export default function Header() {
   const pathname = usePathname()
-  const { user, loading, signOut, isAuthenticated, isAdmin } = useAuth()
+  const { user, loading, signOut, isAuthenticated, isAdmin, role } = useAuth()
   const [showLoginModal, setShowLoginModal] = useState(false)
   const [showEditorModal, setShowEditorModal] = useState(false)
 
@@ -22,25 +22,8 @@ export default function Header() {
   }, [signOut])
 
   const handleSaveContent = async (content) => {
-    // Aquí implementarías la lógica para guardar el contenido
-    // Por ejemplo, usando Supabase para almacenar el contenido editado
+    // Implementar la lógica para guardar el contenido
     console.log('Contenido a guardar:', content)
-    
-    // Ejemplo de implementación con Supabase:
-    /*
-    const { error } = await supabase
-      .from('page_content')
-      .upsert({
-        page_path: pathname,
-        content: content,
-        last_edited_by: user.id,
-        last_edited_at: new Date().toISOString()
-      })
-    
-    if (error) throw error
-    */
-    
-    // Por ahora solo mostramos un mensaje de éxito
     alert('Contenido guardado exitosamente (esta es una demo)')
   }
 
@@ -78,7 +61,14 @@ export default function Header() {
         </nav>
 
         <div className="flex items-center gap-2">
-          {isAuthenticated && isAdmin && (
+          {/* Para testing: mostrar información del rol actual */}
+          {isAuthenticated && (
+            <span className="text-xs bg-gray-100 px-2 py-1 rounded text-gray-600">
+              Rol: {role || 'sin rol'}
+            </span>
+          )}
+          
+          {isAuthenticated && (
             <button
               onClick={() => setShowEditorModal(true)}
               className="px-3 py-1 bg-yellow-500 text-white rounded-full hover:bg-yellow-600 transition-colors text-sm flex items-center gap-1"
@@ -116,13 +106,11 @@ export default function Header() {
         </div>
       </header>
 
-      {/* Modal de Login */}
       <LoginModal 
         isOpen={showLoginModal}
         onClose={() => setShowLoginModal(false)}
       />
       
-      {/* Modal de Editor */}
       <EditorModal 
         isOpen={showEditorModal}
         onClose={() => setShowEditorModal(false)}
