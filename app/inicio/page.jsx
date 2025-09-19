@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Card from '../../components/Card'
 import { useAuth } from '../../lib/useAuth'
 
@@ -19,24 +19,45 @@ export default function InicioPage() {
     { title: "Formularios de Datos", desc: "Ingresa y gestiona datos en campo.", icon: "fa-file-alt", color: "bg-purple-600", href: "/formularios" },
   ])
 
-  // Guardar cambios (de momento en localStorage)
+  // Load saved content from localStorage on mount
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("contenido_inicio")
+      if (saved) {
+        const parsed = JSON.parse(saved)
+        setHeroTitle(parsed.heroTitle || heroTitle)
+        setHeroDesc(parsed.heroDesc || heroDesc)
+        setCards(parsed.cards || cards)
+      }
+    } catch (e) {
+      console.error("Error loading saved inicio content:", e)
+    }
+
+    const handler = () => setEditMode((v) => !v)
+    window.addEventListener('toggle-edit', handler)
+    return () => window.removeEventListener('toggle-edit', handler)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // Guardar cambios en localStorage
   const handleSave = () => {
     const data = { heroTitle, heroDesc, cards }
-    localStorage.setItem("contenido_inicio", JSON.stringify(data))
-    setEditMode(false)
-    alert("✅ Cambios guardados (localStorage)")
+    try {
+      localStorage.setItem("contenido_inicio", JSON.stringify(data))
+      setEditMode(false)
+      alert("✅ Cambios guardados (localStorage)")
+    } catch (e) {
+      console.error("Error saving inicio content:", e)
+      alert("Error guardando contenido en localStorage")
+    }
   }
 
-  // Cargar cambios previos
-  useState(() => {
-    const saved = localStorage.getItem("contenido_inicio")
-    if (saved) {
-      const parsed = JSON.parse(saved)
-      setHeroTitle(parsed.heroTitle)
-      setHeroDesc(parsed.heroDesc)
-      setCards(parsed.cards)
-    }
-  }, [])
+  const handleAddCard = () => {
+    setCards([
+      ...cards,
+      { title: "Nueva sección", desc: "Descripción editable...", icon: "fa-star", color: "bg-gray-500", href: "#" }
+    ])
+  }
 
   return (
     <section className="space-y-6">
@@ -125,6 +146,30 @@ export default function InicioPage() {
           </div>
         ))}
       </div>
+
+      {/* Floating edit panel when in edit mode (mobile friendly) */}
+      {editMode && (
+        <div className="fixed bottom-4 right-4 bg-white shadow-lg rounded-xl p-4 flex gap-3 border z-50">
+          <button 
+            onClick={handleAddCard}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          >
+            + Agregar card
+          </button>
+          <button 
+            onClick={handleSave}
+            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+          >
+            Guardar
+          </button>
+          <button 
+            onClick={() => setEditMode(false)}
+            className="px-4 py-2 bg-gray-400 text-white rounded-lg hover:bg-gray-500"
+          >
+            Cancelar
+          </button>
+        </div>
+      )}
     </section>
   )
 }

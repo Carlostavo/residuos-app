@@ -38,6 +38,13 @@ export default function Header() {
     window.location.reload()
   }
 
+  const handleToggleEdit = () => {
+    // Dispatch a global event so the current page can react and enter edit mode
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('toggle-edit'))
+    }
+  }
+
   return (
     <>
       <header className="topbar flex justify-between items-center p-4 bg-white shadow-md sticky top-0 z-40">
@@ -60,10 +67,10 @@ export default function Header() {
             </div>
           ) : session ? (
             <>
-              {/* Botón editar */}
+              {/* Botón editar que dispara evento global */}
               <button
-                onClick={() => window.location.href = '/editar'}
-                className="p-2 rounded-full bg-green-600 text-white hover:bg-green-700"
+                onClick={handleToggleEdit}
+                className="p-2 rounded-full bg-yellow-500 text-white hover:bg-yellow-600"
                 title="Editar contenido"
               >
                 <i className="fa-solid fa-pen"></i>
