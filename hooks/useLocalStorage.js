@@ -7,9 +7,11 @@ export function useLocalStorage(key, initialValue) {
   
   useEffect(() => {
     try {
-      const item = window.localStorage.getItem(key)
-      if (item) {
-        setStoredValue(JSON.parse(item))
+      if (typeof window !== 'undefined') {
+        const item = window.localStorage.getItem(key)
+        if (item) {
+          setStoredValue(JSON.parse(item))
+        }
       }
     } catch (error) {
       console.log(error)
@@ -19,7 +21,9 @@ export function useLocalStorage(key, initialValue) {
   const setValue = (value) => {
     try {
       setStoredValue(value)
-      window.localStorage.setItem(key, JSON.stringify(value))
+      if (typeof window !== 'undefined') {
+        window.localStorage.setItem(key, JSON.stringify(value))
+      }
     } catch (error) {
       console.log(error)
     }
