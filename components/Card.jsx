@@ -1,9 +1,8 @@
-// components/Card.jsx
+// components/Card.jsx (versión simplificada)
 'use client'
 import Link from 'next/link'
 import { useEdit } from '../contexts/EditContext'
 import Editable from './Editable'
-import Draggable from './Draggable'
 
 export default function Card({ 
   id,
@@ -15,10 +14,7 @@ export default function Card({
   className = '',
   onTitleChange,
   onDescChange,
-  onDragStart,
-  onDragOver,
-  onDrop,
-  onDragEnd
+  ...props 
 }) {
   const { isEditing } = useEdit()
 
@@ -26,7 +22,8 @@ export default function Card({
     <div 
       className={`card p-6 rounded-2xl bg-white shadow-lg transition-all duration-300 h-full flex flex-col ${className} ${
         (href && !isEditing) ? 'cursor-pointer hover:scale-105 hover:shadow-xl' : ''
-      }`}
+      } ${isEditing ? 'editable-highlight' : ''}`}
+      {...props}
     >
       <div className={`w-14 h-14 rounded-full flex items-center justify-center text-white ${color} mb-4`}>
         <i className={`fa-solid ${icon} text-xl`}></i>
@@ -67,24 +64,7 @@ export default function Card({
     </div>
   )
 
-  // Si estamos editando, envolvemos la card en un componente Draggable
-  if (isEditing) {
-    return (
-      <Draggable
-        id={id}
-        onDragStart={onDragStart}
-        onDragOver={onDragOver}
-        onDrop={onDrop}
-        onDragEnd={onDragEnd}
-        className="h-full"
-      >
-        {cardContent}
-      </Draggable>
-    )
-  }
-  
-  // Si no estamos editando y hay un href, envolvemos en Link
-  if (href) {
+  if (href && !isEditing) {
     return (
       <Link href={href} className="h-full block">
         {cardContent}
