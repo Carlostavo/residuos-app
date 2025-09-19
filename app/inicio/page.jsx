@@ -38,25 +38,7 @@ export default function InicioPage() {
           ))}
         </div>
 
-        {/* Sección adicional */}
-        <div className="mt-12 grid md:grid-cols-2 gap-8">
-          <div className="bg-white rounded-2xl shadow-md p-6">
-            <h2 className="text-2xl font-bold text-green-700 mb-4">¿Por qué elegirnos?</h2>
-            <ul className="space-y-3">
-              <li className="flex items-center">
-                <i className="fa-solid fa-check-circle text-green-500 mr-3"></i>
-                <span>Monitoreo en tiempo real de indicadores</span>
-              </li>
-              <li className="flex items-center">
-                <i className="fa-solid fa-check-circle text-green-500 mr-3"></i>
-                <span>Reportes automatizados y personalizables</span>
-              </li>
-              <li className="flex items-center">
-                <i className="fa-solid fa-check-circle text-green-500 mr-3"></i>
-                <span>Seguimiento detallado de metas y avances</span>
-              </li>
-            </ul>
-          </div>
+
           
           
         
