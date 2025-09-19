@@ -1,24 +1,48 @@
-// components/Header.jsx - Mejorado
+// components/Header.jsx - Actualizado
 'use client'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useAuth } from '../lib/useAuth'
 import { useState, useCallback } from 'react'
 import LoginModal from './LoginModal'
+import EditorModal from './EditorModal'
 
 export default function Header() {
   const pathname = usePathname()
-  const { user, loading, signOut, isAuthenticated } = useAuth()
+  const { user, loading, signOut, isAuthenticated, isAdmin } = useAuth()
   const [showLoginModal, setShowLoginModal] = useState(false)
+  const [showEditorModal, setShowEditorModal] = useState(false)
 
   const handleLogout = useCallback(async () => {
     try {
       await signOut()
-      // No es necesario recargar la página, el hook manejará el estado
     } catch (error) {
       console.error('Logout error:', error)
     }
   }, [signOut])
+
+  const handleSaveContent = async (content) => {
+    // Aquí implementarías la lógica para guardar el contenido
+    // Por ejemplo, usando Supabase para almacenar el contenido editado
+    console.log('Contenido a guardar:', content)
+    
+    // Ejemplo de implementación con Supabase:
+    /*
+    const { error } = await supabase
+      .from('page_content')
+      .upsert({
+        page_path: pathname,
+        content: content,
+        last_edited_by: user.id,
+        last_edited_at: new Date().toISOString()
+      })
+    
+    if (error) throw error
+    */
+    
+    // Por ahora solo mostramos un mensaje de éxito
+    alert('Contenido guardado exitosamente (esta es una demo)')
+  }
 
   const navItems = [
     { href: '/inicio', label: 'Inicio' },
@@ -53,7 +77,18 @@ export default function Header() {
           ))}
         </nav>
 
-        <div className="flex items-center">
+        <div className="flex items-center gap-2">
+          {isAuthenticated && isAdmin && (
+            <button
+              onClick={() => setShowEditorModal(true)}
+              className="px-3 py-1 bg-yellow-500 text-white rounded-full hover:bg-yellow-600 transition-colors text-sm flex items-center gap-1"
+              title="Editar contenido de la página"
+            >
+              <i className="fa-solid fa-pen-to-square text-xs"></i>
+              <span className="hidden sm:inline">Editar</span>
+            </button>
+          )}
+          
           {loading ? (
             <div className="px-4 py-2 bg-gray-200 text-gray-600 rounded-full animate-pulse">
               Cargando...
@@ -85,6 +120,14 @@ export default function Header() {
       <LoginModal 
         isOpen={showLoginModal}
         onClose={() => setShowLoginModal(false)}
+      />
+      
+      {/* Modal de Editor */}
+      <EditorModal 
+        isOpen={showEditorModal}
+        onClose={() => setShowEditorModal(false)}
+        content="<p>Edita el contenido de esta página usando el editor HTML.</p>"
+        onSave={handleSaveContent}
       />
     </>
   )
