@@ -1,48 +1,47 @@
+'use client'
 
 import { useState } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useAuth } from "../lib/useAuth";
+import { supabase } from "../lib/supabaseClient";
+
 import ProtectedRoute from "./ProtectedRoute";
 import EditorPanel from "./EditorPanel";
-'use client'
-import Link from 'next/link'
-import { usePathname } from 'next/navigation'
-import { useAuth } from '../lib/useAuth'
-import { supabase } from '../lib/supabaseClient'
-import { useState } from 'react'
-
 
 export default function Header() {
   const [editorOpen, setEditorOpen] = useState(false);
-  const pathname = usePathname()
-  const { session, role, loading } = useAuth()
-  const [showLoginModal, setShowLoginModal] = useState(false)
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [error, setError] = useState(null)
-  const [loginLoading, setLoginLoading] = useState(false)
+  const pathname = usePathname();
+  const { session, role, loading } = useAuth();
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState(null);
+  const [loginLoading, setLoginLoading] = useState(false);
 
   const handleLogin = async (e) => {
-    e.preventDefault()
-    setLoginLoading(true)
-    setError(null)
-    const { data, error } = await supabase.auth.signInWithPassword({
+    e.preventDefault();
+    setLoginLoading(true);
+    setError(null);
+    const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
-    })
+    });
     if (error) {
-      setError(error.message)
+      setError(error.message);
     } else {
-      setShowLoginModal(false)
-      setEmail('')
-      setPassword('')
-      window.location.reload()
+      setShowLoginModal(false);
+      setEmail("");
+      setPassword("");
+      window.location.reload();
     }
-    setLoginLoading(false)
-  }
+    setLoginLoading(false);
+  };
 
   const handleLogout = async () => {
-    await supabase.auth.signOut()
-    window.location.reload()
-  }
+    await supabase.auth.signOut();
+    window.location.reload();
+  };
 
   return (
     <>
@@ -79,18 +78,18 @@ export default function Header() {
             </button>
           )}
         </nav>
-      
-  <ProtectedRoute allowedRoles={["admin","tecnico"]}>
-    <button
-      onClick={() => setEditorOpen(!editorOpen)}
-      className="ml-4 bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700"
-    >
-      {editorOpen ? "Cerrar edición" : "Editar"}
-    </button>
-  </ProtectedRoute>
-</header>
-<EditorPanel isOpen={editorOpen} onClose={() => setEditorOpen(false)} />
 
+        <ProtectedRoute allowedRoles={["admin", "tecnico"]}>
+          <button
+            onClick={() => setEditorOpen(!editorOpen)}
+            className="ml-4 bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700"
+          >
+            {editorOpen ? "Cerrar edición" : "Editar"}
+          </button>
+        </ProtectedRoute>
+      </header>
+
+      <EditorPanel isOpen={editorOpen} onClose={() => setEditorOpen(false)} />
 
       {/* Modal de Login */}
       {showLoginModal && (
@@ -98,24 +97,31 @@ export default function Header() {
           <div className="bg-white rounded-2xl shadow-lg w-full max-w-md overflow-hidden">
             <div className="flex justify-between items-center p-4 border-b">
               <h2 className="text-xl font-bold">Iniciar sesión</h2>
-              <button 
+              <button
                 onClick={() => {
-                  setShowLoginModal(false)
-                  setError(null)
-                  setEmail('')
-                  setPassword('')
+                  setShowLoginModal(false);
+                  setError(null);
+                  setEmail("");
+                  setPassword("");
                 }}
                 className="text-gray-500 hover:text-gray-700"
               >
                 <i className="fa-solid fa-xmark text-xl"></i>
               </button>
             </div>
-            
+
             <form onSubmit={handleLogin} className="p-6">
-              {error && <div className="text-red-500 text-sm mb-4 p-2 bg-red-50 rounded">{error}</div>}
-              
+              {error && (
+                <div className="text-red-500 text-sm mb-4 p-2 bg-red-50 rounded">
+                  {error}
+                </div>
+              )}
+
               <div className="mb-4">
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+                <label
+                  htmlFor="email"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
                   Correo electrónico
                 </label>
                 <input
@@ -128,9 +134,12 @@ export default function Header() {
                   required
                 />
               </div>
-              
+
               <div className="mb-6">
-                <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+                <label
+                  htmlFor="password"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
                   Contraseña
                 </label>
                 <input
@@ -143,22 +152,23 @@ export default function Header() {
                   required
                 />
               </div>
-              
-              <button 
-                type="submit" 
+
+              <button
+                type="submit"
                 disabled={loginLoading}
                 className="w-full bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 disabled:opacity-70"
               >
-                {loginLoading ? 'Iniciando sesión...' : 'Entrar'}
+                {loginLoading ? "Iniciando sesión..." : "Entrar"}
               </button>
-              
+
               <p className="text-sm text-gray-500 mt-4 text-center">
-                ¿No tienes cuenta? Regístrate desde Supabase Auth o pide a un admin.
+                ¿No tienes cuenta? Regístrate desde Supabase Auth o pide a un
+                admin.
               </p>
             </form>
           </div>
         </div>
       )}
     </>
-  )
+  );
 }
