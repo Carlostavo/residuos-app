@@ -1,10 +1,11 @@
 // app/inicio/page.jsx
 'use client'
-import DraggableCard from '../../components/DraggableCard'
+import Card from '../../components/Card'
 import Editable from '../../components/Editable'
+import DraggableArea from '../../components/DraggableArea'
 import { useEdit } from '../../contexts/EditContext'
 import { useLocalStorage } from '../../hooks/useLocalStorage'
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 
 export default function InicioPage() {
   const { isEditing } = useEdit()
@@ -14,10 +15,10 @@ export default function InicioPage() {
   // Posiciones iniciales para las cards
   const getInitialPositions = () => [
     { id: 1, x: 50, y: 200 },
-    { id: 2, x: 350, y: 200 },
-    { id: 3, x: 650, y: 200 },
+    { id: 2, x: 400, y: 200 },
+    { id: 3, x: 750, y: 200 },
     { id: 4, x: 200, y: 450 },
-    { id: 5, x: 500, y: 450 }
+    { id: 5, x: 550, y: 450 }
   ]
 
   const [cardPositions, setCardPositions] = useLocalStorage('inicioCardPositions', getInitialPositions())
@@ -116,27 +117,32 @@ export default function InicioPage() {
         )}
       </div>
 
-      {/* Contenedor para las cards con posicionamiento absoluto */}
-      <div className="relative w-full min-h-[600px]">
-        {cards.map((card) => {
-          const position = cardPositions.find(pos => pos.id === card.id) || { x: 0, y: 0 }
-          return (
-            <DraggableCard
-              key={card.id}
-              id={card.id}
-              title={card.title}
-              desc={card.desc}
-              icon={card.icon}
-              color={card.color}
-              href={card.href}
-              position={position}
-              onPositionChange={updateCardPosition}
-              onTitleChange={(newTitle) => updateCardTitle(card.id, newTitle)}
-              onDescChange={(newDesc) => updateCardDesc(card.id, newDesc)}
-            />
-          )
-        })}
-      </div>
+      <DraggableArea
+        cards={cards}
+        cardPositions={cardPositions}
+        onPositionChange={updateCardPosition}
+        onTitleChange={updateCardTitle}
+        onDescChange={updateCardDesc}
+      >
+        {/* Contenido normal cuando no está editando */}
+        {!isEditing && (
+          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 gap-6">
+            {cards.map((card) => (
+              <Card
+                key={card.id}
+                id={card.id}
+                title={card.title}
+                desc={card.desc}
+                icon={card.icon}
+                color={card.color}
+                href={card.href}
+                onTitleChange={(newTitle) => updateCardTitle(card.id, newTitle)}
+                onDescChange={(newDesc) => updateCardDesc(card.id, newDesc)}
+              />
+            ))}
+          </div>
+        )}
+      </DraggableArea>
 
       {isEditing && (
         <>
