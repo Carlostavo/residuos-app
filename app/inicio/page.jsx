@@ -79,14 +79,8 @@ export default function InicioPage() {
       </div>
 
       {Object.keys(elements).map((elementId) => (
-        <EditableElement key={elementId} elementId={elementId}>
-          <DynamicElement elementId={elementId} />
-        </EditableElement>
+        <DynamicElement key={elementId} elementId={elementId} />
       ))}
-
-      {isEditMode && (
-        <div className="mt-12 min-h-[200px] border-2 border-dashed border-gray-200 rounded-lg opacity-50 hover:opacity-100 transition-opacity"></div>
-      )}
     </section>
   )
 }

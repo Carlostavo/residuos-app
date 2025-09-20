@@ -91,8 +91,19 @@ export default function DynamicElement({ elementId }) {
   }
 
   return (
-    <EditableElement elementId={elementId} className="inline-block" style={element.style}>
-      {renderContent()}
-    </EditableElement>
+    <div
+      className="dynamic-element"
+      style={{
+        position: isEditMode ? "absolute" : "static",
+        left: isEditMode ? `${element.x || 0}px` : "auto",
+        top: isEditMode ? `${element.y || 0}px` : "auto",
+        zIndex: isEditMode ? 10 : "auto",
+        ...element.style,
+      }}
+    >
+      <EditableElement elementId={elementId} draggable={true}>
+        {renderContent()}
+      </EditableElement>
+    </div>
   )
 }
