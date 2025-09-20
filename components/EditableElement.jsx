@@ -10,7 +10,7 @@ export default function EditableElement({
   draggable = true,
   ...props
 }) {
-  const { isEditMode, selectedElement, selectElement, updateElement, elements } = useEdit()
+  const { isEditMode, selectedElement, selectElement, updateElement, elements, removeElement } = useEdit()
   const [isDragging, setIsDragging] = useState(false)
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 })
   const [isEditing, setIsEditing] = useState(false)
@@ -27,7 +27,7 @@ export default function EditableElement({
     e.stopPropagation()
     selectElement(elementId)
 
-    if (e.detail === 2 && (type === "h1" || type === "h2" || type === "h3" || type === "p" || type === "span")) {
+    if (e.detail === 2 && elementData?.type === "text") {
       setIsEditing(true)
     }
   }
@@ -54,7 +54,7 @@ export default function EditableElement({
 
     e.preventDefault()
 
-    const container = elementRef.current.offsetParent || document.body
+    const container = document.body
     const containerRect = container.getBoundingClientRect()
 
     const newX = Math.max(0, e.clientX - containerRect.left - dragStart.x)
@@ -79,6 +79,12 @@ export default function EditableElement({
     }
   }
 
+  const handleDeleteClick = (e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    removeElement(elementId)
+  }
+
   useEffect(() => {
     if (isDragging) {
       document.addEventListener("mousemove", handleMouseMove)
@@ -101,6 +107,7 @@ export default function EditableElement({
 
   const style = {
     ...props.style,
+    outline: "none",
     ...(elementData &&
       isEditMode && {
         position: "absolute",
@@ -118,9 +125,7 @@ export default function EditableElement({
       style={style}
       onClick={handleClick}
       onMouseDown={handleMouseDown}
-      contentEditable={
-        isEditMode && isEditing && (type === "h1" || type === "h2" || type === "h3" || type === "p" || type === "span")
-      }
+      contentEditable={isEditMode && isEditing && elementData?.type === "text"}
       onKeyDown={isEditing ? handleTextEdit : undefined}
       suppressContentEditableWarning={true}
       data-element-id={elementId}
@@ -129,7 +134,16 @@ export default function EditableElement({
       {elementData?.content || children}
       {isEditMode && isSelected && (
         <div className="absolute -top-1 -left-1 -right-1 -bottom-1 border-2 border-blue-500 pointer-events-none rounded">
-          <div className="absolute -top-6 left-0 bg-blue-500 text-white text-xs px-2 py-1 rounded">{elementId}</div>
+          <div className="absolute -top-6 left-0 bg-blue-500 text-white text-xs px-2 py-1 rounded flex items-center gap-2 pointer-events-auto">
+            <span>{elementId}</span>
+            <button
+              onClick={handleDeleteClick}
+              className="text-white hover:text-red-200 ml-1"
+              title="Eliminar elemento (Delete)"
+            >
+              <i className="fa-solid fa-trash text-xs"></i>
+            </button>
+          </div>
           <div className="absolute -bottom-2 -right-2 w-4 h-4 bg-blue-500 rounded-full cursor-se-resize"></div>
         </div>
       )}

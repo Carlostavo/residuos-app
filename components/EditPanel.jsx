@@ -3,7 +3,19 @@ import { useState, useEffect } from "react"
 import { useEdit } from "../lib/EditContext"
 
 export default function EditPanel() {
-  const { isEditMode, selectedElement, undo, redo, canUndo, canRedo, updateElement, addElement, elements } = useEdit()
+  const {
+    isEditMode,
+    selectedElement,
+    undo,
+    redo,
+    canUndo,
+    canRedo,
+    updateElement,
+    addElement,
+    elements,
+    formatText,
+    selectedText,
+  } = useEdit()
 
   const [activeTab, setActiveTab] = useState("elements")
   const [textContent, setTextContent] = useState("")
@@ -33,6 +45,7 @@ export default function EditPanel() {
   const tabs = [
     { id: "elements", label: "Elementos", icon: "fa-plus-circle" },
     { id: "properties", label: "Propiedades", icon: "fa-cog" },
+    { id: "format", label: "Formato", icon: "fa-bold" },
     { id: "style", label: "Estilo", icon: "fa-palette" },
     { id: "layout", label: "Diseño", icon: "fa-th-large" },
   ]
@@ -181,6 +194,7 @@ export default function EditPanel() {
                 ? "bg-white hover:bg-gray-50 text-gray-700 shadow-sm"
                 : "bg-gray-100 text-gray-400 cursor-not-allowed"
             }`}
+            title="Deshacer (Ctrl+Z)"
           >
             <i className="fa-solid fa-undo text-xs"></i>
             Deshacer
@@ -193,10 +207,15 @@ export default function EditPanel() {
                 ? "bg-white hover:bg-gray-50 text-gray-700 shadow-sm"
                 : "bg-gray-100 text-gray-400 cursor-not-allowed"
             }`}
+            title="Rehacer (Ctrl+Shift+Z)"
           >
             <i className="fa-solid fa-redo text-xs"></i>
             Rehacer
           </button>
+        </div>
+
+        <div className="mt-2 text-xs text-gray-500">
+          <p>Atajos: Ctrl+S (Guardar), Delete (Eliminar)</p>
         </div>
       </div>
 
@@ -206,20 +225,88 @@ export default function EditPanel() {
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`flex-1 px-2 py-3 text-xs font-medium flex items-center justify-center gap-1 transition-all ${
+            className={`flex-1 px-1 py-3 text-xs font-medium flex items-center justify-center gap-1 transition-all ${
               activeTab === tab.id
                 ? "bg-white text-blue-600 border-b-2 border-blue-600 shadow-sm"
                 : "text-gray-600 hover:text-gray-800 hover:bg-gray-100"
             }`}
           >
             <i className={`fa-solid ${tab.icon} text-xs`}></i>
-            <span className="hidden sm:inline">{tab.label}</span>
+            <span className="hidden sm:inline text-xs">{tab.label}</span>
           </button>
         ))}
       </div>
 
       {/* Contenido del panel */}
       <div className="flex-1 overflow-y-auto p-4">
+        {activeTab === "format" && (
+          <div className="space-y-4">
+            {selectedElement && currentElement && currentElement.type === "text" ? (
+              <div>
+                <h4 className="font-medium text-gray-800 mb-3 flex items-center gap-2">
+                  <i className="fa-solid fa-bold text-blue-600"></i>
+                  Formato de Texto
+                </h4>
+
+                {selectedText ? (
+                  <div className="space-y-3">
+                    <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
+                      <p className="text-sm text-blue-800 mb-2">Texto seleccionado:</p>
+                      <p className="text-sm font-mono bg-white p-2 rounded border">"{selectedText.selection.text}"</p>
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-2">
+                      <button
+                        onClick={() => formatText(selectedElement, "bold")}
+                        className="px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded text-sm font-bold transition-colors"
+                        title="Negrita"
+                      >
+                        <i className="fa-solid fa-bold"></i>
+                      </button>
+                      <button
+                        onClick={() => formatText(selectedElement, "italic")}
+                        className="px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded text-sm italic transition-colors"
+                        title="Cursiva"
+                      >
+                        <i className="fa-solid fa-italic"></i>
+                      </button>
+                      <button
+                        onClick={() => formatText(selectedElement, "underline")}
+                        className="px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded text-sm underline transition-colors"
+                        title="Subrayado"
+                      >
+                        <i className="fa-solid fa-underline"></i>
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center text-gray-500 py-8">
+                    <i className="fa-solid fa-text-width text-3xl mb-3 text-gray-300"></i>
+                    <p className="text-sm font-medium">Selecciona texto para formatear</p>
+                    <p className="text-xs">Haz doble clic y arrastra para seleccionar texto</p>
+                  </div>
+                )}
+
+                <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+                  <h5 className="font-medium text-sm text-gray-700 mb-2">Edición rápida</h5>
+                  <textarea
+                    value={textContent}
+                    onChange={(e) => handleTextChange(e.target.value)}
+                    className="w-full p-3 border border-gray-300 rounded-lg text-sm resize-none h-32 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Edita el contenido completo aquí..."
+                  />
+                </div>
+              </div>
+            ) : (
+              <div className="text-center text-gray-500 py-12">
+                <i className="fa-solid fa-font text-4xl mb-4 text-gray-300"></i>
+                <p className="text-lg font-medium">Selecciona un elemento de texto</p>
+                <p className="text-sm">Solo los elementos de texto pueden ser formateados</p>
+              </div>
+            )}
+          </div>
+        )}
+
         {activeTab === "elements" && (
           <div className="space-y-4">
             <div>
