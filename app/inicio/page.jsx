@@ -63,24 +63,29 @@ export default function InicioPage() {
         </EditableElement>
       </EditableElement>
 
-      <EditableElement elementId="cards-grid" className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 gap-6">
         {cards.map((c, index) => (
           <EditableElement key={c.title} elementId={`card-${index}`} className="relative">
-            <Card title={c.title} desc={c.desc} icon={c.icon} color={c.color} href={c.href} />
+            <Card
+              title={c.title}
+              desc={c.desc}
+              icon={c.icon}
+              color={c.color}
+              href={isEditMode ? null : c.href}
+              isEditMode={isEditMode}
+            />
           </EditableElement>
         ))}
-      </EditableElement>
+      </div>
 
       {Object.keys(elements).map((elementId) => (
-        <DynamicElement key={elementId} elementId={elementId} />
+        <EditableElement key={elementId} elementId={elementId}>
+          <DynamicElement elementId={elementId} />
+        </EditableElement>
       ))}
 
       {isEditMode && (
-        <div className="mt-12 p-8 border-2 border-dashed border-gray-300 rounded-lg text-center text-gray-500">
-          <i className="fa-solid fa-plus text-2xl mb-2"></i>
-          <p>Los nuevos elementos aparecerán aquí</p>
-          <p className="text-sm">Usa el panel lateral para insertar contenido</p>
-        </div>
+        <div className="mt-12 min-h-[200px] border-2 border-dashed border-gray-200 rounded-lg opacity-50 hover:opacity-100 transition-opacity"></div>
       )}
     </section>
   )

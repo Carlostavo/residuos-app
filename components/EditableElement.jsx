@@ -13,20 +13,33 @@ export default function EditableElement({
   const { isEditMode, selectedElement, selectElement, updateElement, elements } = useEdit()
   const [isDragging, setIsDragging] = useState(false)
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 })
+  const [isEditing, setIsEditing] = useState(false)
   const elementRef = useRef(null)
 
   const isSelected = selectedElement === elementId
   const Component = type
   const elementData = elements[elementId]
 
-  const handleMouseDown = (e) => {
+  const handleClick = (e) => {
     if (!isEditMode) return
 
     e.preventDefault()
     e.stopPropagation()
     selectElement(elementId)
 
-    if (draggable) {
+    if (e.detail === 2 && (type === "h1" || type === "h2" || type === "h3" || type === "p" || type === "span")) {
+      setIsEditing(true)
+    }
+  }
+
+  const handleMouseDown = (e) => {
+    if (!isEditMode || isEditing) return
+
+    e.preventDefault()
+    e.stopPropagation()
+    selectElement(elementId)
+
+    if (draggable && e.button === 0) {
       setIsDragging(true)
       const rect = elementRef.current.getBoundingClientRect()
       setDragStart({
@@ -41,16 +54,28 @@ export default function EditableElement({
 
     e.preventDefault()
 
-    const newX = e.clientX - dragStart.x
-    const newY = e.clientY - dragStart.y
+    const container = elementRef.current.offsetParent || document.body
+    const containerRect = container.getBoundingClientRect()
 
-    // Update element position in real-time
+    const newX = Math.max(0, e.clientX - containerRect.left - dragStart.x)
+    const newY = Math.max(0, e.clientY - containerRect.top - dragStart.y)
+
     updateElement(elementId, { x: newX, y: newY })
   }
 
   const handleMouseUp = () => {
     if (isDragging) {
       setIsDragging(false)
+    }
+  }
+
+  const handleTextEdit = (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault()
+      setIsEditing(false)
+      updateElement(elementId, { content: e.target.textContent })
+    } else if (e.key === "Escape") {
+      setIsEditing(false)
     }
   }
 
@@ -68,20 +93,22 @@ export default function EditableElement({
 
   const editableClassName = `
     ${className}
-    ${isEditMode ? "editable-element cursor-move" : ""}
+    ${isEditMode ? "editable-element" : ""}
     ${isSelected ? "editable-selected" : ""}
     ${isDragging ? "editable-dragging" : ""}
+    ${isEditMode && draggable ? "cursor-move" : ""}
   `.trim()
 
   const style = {
     ...props.style,
-    ...(elementData && {
-      position: isEditMode ? "absolute" : "relative",
-      left: isEditMode ? `${elementData.x || 0}px` : "auto",
-      top: isEditMode ? `${elementData.y || 0}px` : "auto",
-      zIndex: isDragging ? 1000 : isEditMode ? 10 : "auto",
-      ...elementData.style,
-    }),
+    ...(elementData &&
+      isEditMode && {
+        position: "absolute",
+        left: `${elementData.x || 0}px`,
+        top: `${elementData.y || 0}px`,
+        zIndex: isDragging ? 1000 : isSelected ? 100 : 10,
+        ...elementData.style,
+      }),
   }
 
   return (
@@ -89,11 +116,17 @@ export default function EditableElement({
       ref={elementRef}
       className={editableClassName}
       style={style}
+      onClick={handleClick}
       onMouseDown={handleMouseDown}
+      contentEditable={
+        isEditMode && isEditing && (type === "h1" || type === "h2" || type === "h3" || type === "p" || type === "span")
+      }
+      onKeyDown={isEditing ? handleTextEdit : undefined}
+      suppressContentEditableWarning={true}
       data-element-id={elementId}
       {...props}
     >
-      {children}
+      {elementData?.content || children}
       {isEditMode && isSelected && (
         <div className="absolute -top-1 -left-1 -right-1 -bottom-1 border-2 border-blue-500 pointer-events-none rounded">
           <div className="absolute -top-6 left-0 bg-blue-500 text-white text-xs px-2 py-1 rounded">{elementId}</div>
