@@ -1,8 +1,8 @@
 'use client'
 import { Rnd } from 'react-rnd'
-import { useEditor } from './EditorContext'
-import { useState, useRef } from 'react'
-import { supabase } from '../lib/supabaseClient'
+import { useEditor } from './Editor/Context.jax'
+import { useState } from 'react'
+import { supabase } from '../lib/supabaseClient.jax'
 
 export default function EditableCard({ card }) {
   const { editMode } = useEditor()
@@ -22,21 +22,17 @@ export default function EditableCard({ card }) {
     setData(next)
     try {
       const { error } = await supabase.from('elements').upsert(next)
-      if (error) {
-        console.error('Error saving:', error)
-      }
+      if (error) console.error('Error saving:', error)
     } catch (err) {
       console.error('Save error:', err)
     }
   }
 
   const handleDelete = async () => {
-    if (confirm('¿Estás seguro de que quieres eliminar esta tarjeta?')) {
+    if (confirm('¿Eliminar esta tarjeta?')) {
       try {
         const { error } = await supabase.from('elements').delete().eq('id', data.id)
-        if (error) {
-          console.error('Error deleting:', error)
-        }
+        if (error) console.error('Error deleting:', error)
       } catch (err) {
         console.error('Delete error:', err)
       }
@@ -45,10 +41,7 @@ export default function EditableCard({ card }) {
 
   return (
     <Rnd
-      size={{ 
-        width: data.maximized ? '100%' : data.width, 
-        height: data.maximized ? 400 : data.height 
-      }}
+      size={{ width: data.maximized ? '100%' : data.width, height: data.maximized ? 400 : data.height }}
       position={{ x: data.x, y: data.y }}
       onDragStop={(e, d) => save({ x: d.x, y: d.y })}
       onResizeStop={(e, direction, ref, delta, position) => {
