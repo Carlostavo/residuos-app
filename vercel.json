@@ -1,0 +1,61 @@
+{
+  "buildCommand": "npm run build",
+  "outputDirectory": ".next",
+  "framework": "nextjs",
+  "functions": {
+    "app/api/**/*.ts": {
+      "runtime": "nodejs18.x"
+    }
+  },
+  "env": {
+    "NEXT_PUBLIC_SUPABASE_URL": "@supabase-url",
+    "NEXT_PUBLIC_SUPABASE_ANON_KEY": "@supabase-anon-key",
+    "SUPABASE_SERVICE_ROLE_KEY": "@supabase-service-role-key"
+  },
+  "build": {
+    "env": {
+      "NEXT_PUBLIC_SUPABASE_URL": "@supabase-url",
+      "NEXT_PUBLIC_SUPABASE_ANON_KEY": "@supabase-anon-key"
+    }
+  },
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "X-XSS-Protection",
+          "value": "1; mode=block"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        }
+      ]
+    }
+  ],
+  "redirects": [
+    {
+      "source": "/login",
+      "destination": "/auth/login",
+      "permanent": true
+    },
+    {
+      "source": "/register",
+      "destination": "/auth/register",
+      "permanent": true
+    },
+    {
+      "source": "/signup",
+      "destination": "/auth/register",
+      "permanent": true
+    }
+  ]
+}
