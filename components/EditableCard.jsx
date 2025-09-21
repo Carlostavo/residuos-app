@@ -1,8 +1,8 @@
 'use client'
 import { Rnd } from 'react-rnd'
-import { useEditor } from './Editor/Context.jax'
+import { useEditor } from './EditorContext'
 import { useState } from 'react'
-import { supabase } from '../lib/supabaseClient.jax'
+import { supabase } from '../lib/supabaseClient'
 
 export default function EditableCard({ card }) {
   const { editMode } = useEditor()
