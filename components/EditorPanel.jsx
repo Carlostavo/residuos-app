@@ -12,7 +12,7 @@ export default function EditorPanel({ pageSlug }) {
       page_slug: pageSlug,
       type: 'text',
       title: 'Nuevo texto',
-      content: '<p>Edita este texto haciendo clic...</p>',
+      content: '<p>Edita este texto...</p>',
       x: Math.random() * 200,
       y: Math.random() * 200,
       width: 320,
